@@ -71,3 +71,24 @@ Every durable output should include:
 - limitations,
 - next questions.
 
+Choose the output shape by task:
+
+- normal answer: Markdown note,
+- comparison: Markdown table,
+- presentation: Marp-compatible slide outline,
+- trend or metric analysis: Python code plus chart output notes,
+- checklist: structured bullets with owners or statuses when known.
+
+## EVOLUTION LOG
+
+Use the log to make the next agent's job easier. Each meaningful update should say what changed and why.
+
+Recommended verbs:
+
+- `reinforced`: a new source supports an existing claim.
+- `corrected`: a page was changed because newer or better evidence replaced an old claim.
+- `contradicted`: a source conflicts with an existing page and the page now carries both claims.
+- `re-ingested`: a source hash or extraction changed and affected pages were reviewed.
+- `personal-position`: user writing changed the user's own stance without increasing external source count.
+
+Good log entries include the source note, affected pages, and remaining uncertainty.

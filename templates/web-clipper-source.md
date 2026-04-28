@@ -1,13 +1,13 @@
 ---
 title: "{{title}}"
 aliases: []
-source_url:
-domain:
+source_url: "{{url}}"
+domain: "{{domain}}"
 author:
 published:
 captured: "{{date}}"
 type: source
-source_kind: article
+source_kind: clip
 language:
 canonical_source:
 processed: false
@@ -21,24 +21,21 @@ tags: []
 
 # {{title}}
 
-## Source Summary
+## Clip Summary
 
 
 ## Key Claims
 
-- 
+-
 
-## Relevant Links
-
-- 
-
-## Ingest Targets
+## Candidate Wiki Pages
 
 -
 
-## Processing Notes
+## Relevant Links
 
-- Status:
-- Dependency impact:
+-
 
-## Raw Capture
+## Raw Clip
+
+

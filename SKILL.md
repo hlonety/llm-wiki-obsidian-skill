@@ -46,6 +46,7 @@ vault/
     overview.md
     questions.md
     source-manifest.json
+    source-dependencies.json
     topic-map.md
   10 Sources/
     articles/
@@ -77,13 +78,16 @@ Read `references/obsidian-conventions.md` before initializing or significantly r
 ## Core Rules
 
 - Raw source files are immutable. Add corrections and later interpretation to wiki pages, not source files.
+- Source notes track lifecycle fields: `processed`, `raw_file`, `raw_sha256`, `last_verified`, `possibly_outdated`, `canonical_source`, `language`, `source_url`, `domain`, and `author` when known.
+- Treat `processed: false`, changed hashes, or `possibly_outdated: true` as an ingest/review queue.
 - Every wiki page has YAML frontmatter with `title`, `created`, `updated`, `type`, `status`, `tags`, and `sources`.
 - Every substantial factual claim must be traceable to a source through `sources`, `evidence`, or a page-level Sources section.
 - Use Obsidian wikilinks for internal pages: `[[agentic-workflow]]` or `[[agentic-workflow|Agentic workflow]]`.
 - Prefer lowercase kebab-case filenames for agent stability. Human-readable titles live in frontmatter.
+- Before creating a concept, check existing filenames, titles, and aliases. Keep English lowercase kebab-case slugs; put Chinese names in `title` and `aliases`.
 - Do not create pages for passing mentions. Create a page when the thing is central to one source or appears meaningfully in two or more sources.
 - When a claim conflicts with existing content, keep both claims with dates and sources. Mark the page `contested: true`.
-- Add or update index and log entries after every non-trivial change.
+- Add or update index and log entries after every non-trivial change. Log whether the change reinforced, corrected, contradicted, re-ingested, or recorded a personal position.
 - If an ingest would update more than 10 existing pages, summarize the planned scope and ask before proceeding.
 - Personal writing can record the user's position, but it must not count toward external `source_count`.
 - `confidence: high` requires explicit human confirmation. Do not promote it automatically from source count alone.
@@ -93,8 +97,11 @@ Read `references/obsidian-conventions.md` before initializing or significantly r
 Read `references/workflows.md` for exact steps. Use this quick map:
 
 - Initialize: create the layout, write `SCHEMA.md`, seed `index.md`, seed `log.md`, suggest first sources.
-- Ingest: preserve source, extract entities and concepts, search existing wiki, update synthesis pages, update navigation.
+- Web clip: save clipped pages as source notes with `processed: false`, then batch ingest later.
+- Ingest: preserve source, extract entities and concepts, search existing wiki, update synthesis pages, update navigation, set `processed: true`.
 - Scan sources: compute SHA-256 for files under `10 Sources/` and `raw/`, update `00 Meta/source-manifest.json`, then ingest files marked `new` or `changed`.
+- Build dependencies: update `00 Meta/source-dependencies.json` so changed source files can be traced to affected wiki pages.
+- Re-ingest: when a hash changes, review the dependency map, update source notes and affected pages, then add a re-ingest log entry.
 - Query: read index, search pages, synthesize from wiki pages, cite page links and source notes, optionally file durable answers.
 - Audit: check broken links, orphan pages, index drift, missing frontmatter, unknown tags, stale pages, source drift, and contested claims.
 - Refactor: merge duplicate pages, split oversized pages, archive superseded pages, update inbound links.
@@ -102,13 +109,14 @@ Read `references/workflows.md` for exact steps. Use this quick map:
 - Merge: deduplicate pages by slug and aliases, preserving sources and personal positions.
 - Add question: normalize open questions into `00 Meta/questions.md` so future ingests can answer them.
 
-Read `references/confidence-policy.md` before changing confidence, source counts, or stale review fields. Read `references/operations.md` before reflect, merge, add-question, or durable output work.
+Read `references/ingestion-policy.md` before source ingestion, re-ingestion, dependency-map, or web-clipper work. Read `references/confidence-policy.md` before changing confidence, source counts, or stale review fields. Read `references/operations.md` before reflect, merge, add-question, evolution-log, or durable output work.
 
 ## Page Types
 
 Use the template in `templates/` when creating a page:
 
 - `source.md`: normalized source notes under `10 Sources/`.
+- `web-clipper-source.md`: source notes created from Obsidian Web Clipper or browser saves.
 - `concept.md`: ideas such as RAG, evals, agentic workflows, memory, alignment.
 - `tool.md`: products, models, libraries, frameworks, plugins, APIs.
 - `paper.md`: research papers and technical reports.
@@ -133,6 +141,8 @@ If a tool named in another agent's documentation is unavailable, translate the a
 
 Compatibility target: Claude Code, OpenCode, OpenClaw, Hermes, Codex, Gemini-style agents, and any file-capable agent. If an agent supports local rules files such as `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, or Hermes skill manifests, those files may point to this skill or summarize its vault-specific conventions. The canonical reusable instructions remain in `SKILL.md` and `references/`.
 
+Do not make Claude Code, qmd, or any other single tool a hard dependency. If qmd-style commands are available, they are optional accelerators; otherwise use normal file reads, search, and scripts. See `references/optional-integrations.md` for adapters.
+
 ## Quality Bar
 
 Good LLM Wiki work should leave the vault easier to navigate than before:
@@ -148,6 +158,7 @@ Use scripts in `scripts/` when available:
 ```bash
 python3 scripts/scan_sources.py /path/to/vault
 python3 scripts/scan_sources.py /path/to/vault --write
+python3 scripts/build_source_dependencies.py /path/to/vault --write
 python3 scripts/lint_wiki.py /path/to/vault
 python3 scripts/rebuild_index.py /path/to/vault --write
 ```

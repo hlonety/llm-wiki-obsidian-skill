@@ -14,7 +14,9 @@ This skill teaches an agent to maintain a compounding Markdown wiki:
 - Track sources, confidence, stale claims, and contradictions.
 - Keep open questions, durable outputs, and personal writing separate from external evidence.
 - Compute SHA-256 hashes for raw source files and detect new, changed, or deleted files.
-- Audit broken links, missing index entries, orphan pages, and drift.
+- Build source-to-page dependency maps so changed raw files can trigger targeted review.
+- Track source lifecycle fields such as `processed`, `raw_file`, `raw_sha256`, `last_verified`, and `possibly_outdated`.
+- Audit broken links, missing index entries, orphan pages, duplicate URLs, near-duplicate slugs, link hygiene, and drift.
 
 ## Install
 
@@ -81,6 +83,12 @@ python3 scripts/scan_sources.py ~/wiki/ai
 python3 scripts/scan_sources.py ~/wiki/ai --write
 ```
 
+Build the source dependency map:
+
+```bash
+python3 scripts/build_source_dependencies.py ~/wiki/ai --write
+```
+
 Rebuild the index:
 
 ```bash
@@ -106,16 +114,20 @@ assets/
 _archive/
 ```
 
-`00 Meta/` should include `SCHEMA.md`, `index.md`, `log.md`, `overview.md`, `questions.md`, and the generated `source-manifest.json`.
+`00 Meta/` should include `SCHEMA.md`, `index.md`, `log.md`, `overview.md`, `questions.md`, and the generated `source-manifest.json` and `source-dependencies.json`.
 
-## v0.2 Knowledge Rules
+## Knowledge Rules
 
 - `confidence: high` is never automatic. It requires explicit user confirmation.
 - Personal writing records the user's position but does not count toward external `source_count`.
 - Fast-moving pages use `domain_volatility` and `last_reviewed` so stale claims can be audited.
 - Durable query results, reflection reports, comparison tables, and slide outlines go in `95 Outputs/`.
 - `scan_sources.py` maintains `00 Meta/source-manifest.json` and reports `new`, `changed`, `deleted`, and `unchanged` source files.
+- `build_source_dependencies.py` maintains `00 Meta/source-dependencies.json` for raw-file, source-note, and wiki-page impact tracking.
+- Web Clipper or browser-saved notes should enter as `processed: false` source notes and be batch-ingested later.
+- Use English lowercase kebab-case slugs; put Chinese names and alternate terms in titles and aliases.
 - `REFLECT`, `MERGE`, and `ADD-QUESTION` operations are documented in `references/operations.md`.
+- qmd-style tools are optional adapters, not required dependencies.
 
 ## Source
 

@@ -260,6 +260,138 @@ class WikiScriptTests(unittest.TestCase):
         deleted = [item for item in deleted_report["files"] if item["path"] == "raw/articles/new-agent-note.md"][0]
         self.assertEqual(deleted["status"], "deleted")
 
+    def test_lint_reports_source_lifecycle_and_link_hygiene(self):
+        lint_wiki = load_module("lint_wiki", ROOT / "scripts" / "lint_wiki.py")
+        sources = self.wiki / "10 Sources" / "articles"
+        sources.mkdir(parents=True)
+        (sources / "first-clip.md").write_text(
+            textwrap.dedent(
+                """
+                ---
+                title: First Clip
+                source_url: https://example.com/clip
+                captured: 2026-04-28
+                type: source
+                processed: false
+                possibly_outdated: true
+                raw_file: 10 Sources/articles/first-clip.html
+                raw_sha256: abc123
+                tags: []
+                ---
+
+                Raw capture waiting for ingest.
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        (sources / "second-clip.md").write_text(
+            textwrap.dedent(
+                """
+                ---
+                title: Second Clip
+                source_url: https://example.com/clip/
+                captured: 2026-04-28
+                type: source
+                processed: true
+                tags: []
+                ---
+
+                Duplicate source URL after normalization.
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        (self.wiki / "concepts" / "rag-agent-memory.md").write_text(
+            textwrap.dedent(
+                """
+                ---
+                title: RAG Agent Memory
+                aliases: []
+                created: 2026-04-28
+                updated: 2026-04-28
+                type: concept
+                tags: [agent, memory]
+                sources: []
+                ---
+
+                This page links to a system page [[log]], uses a non-canonical target [[Prompt Architecture]],
+                and overlaps heavily with a second concept slug.
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        (self.wiki / "concepts" / "agent-rag-memory.md").write_text(
+            textwrap.dedent(
+                """
+                ---
+                title: Agent RAG Memory
+                aliases: []
+                created: 2026-04-28
+                updated: 2026-04-28
+                type: concept
+                tags: [agent, memory]
+                sources: []
+                ---
+
+                A near duplicate slug for the same concept family.
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+
+        report = lint_wiki.lint_wiki(self.wiki)
+        codes = {issue["code"] for issue in report["issues"]}
+
+        self.assertIn("unprocessed-source", codes)
+        self.assertIn("possibly-outdated-source", codes)
+        self.assertIn("duplicate-source-url", codes)
+        self.assertIn("forbidden-wikilink", codes)
+        self.assertIn("non-kebab-wikilink", codes)
+        self.assertIn("near-duplicate-slug", codes)
+
+    def test_build_source_dependencies_maps_raw_sources_to_pages(self):
+        build_source_dependencies = load_module("build_source_dependencies", ROOT / "scripts" / "build_source_dependencies.py")
+        sources = self.wiki / "10 Sources" / "articles"
+        sources.mkdir(parents=True)
+        raw_file = sources / "karpathy.html"
+        raw_file.write_text("<article>Compiled wiki memory</article>\n", encoding="utf-8")
+        (sources / "karpathy-llm-wiki.md").write_text(
+            textwrap.dedent(
+                """
+                ---
+                title: Karpathy LLM Wiki
+                source_url: https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f
+                captured: 2026-04-28
+                type: source
+                processed: true
+                raw_file: 10 Sources/articles/karpathy.html
+                raw_sha256: rawhash
+                tags: []
+                ---
+
+                This source supports [[agentic-workflow]].
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+
+        report = build_source_dependencies.build_source_dependencies(self.wiki)
+        deps = report["dependencies"]
+
+        self.assertIn("10 Sources/articles/karpathy-llm-wiki.md", deps)
+        self.assertIn("10 Sources/articles/karpathy.html", deps)
+        self.assertEqual(deps["10 Sources/articles/karpathy-llm-wiki.md"]["raw_file"], "10 Sources/articles/karpathy.html")
+        self.assertIn("concepts/agentic-workflow.md", deps["10 Sources/articles/karpathy-llm-wiki.md"]["wiki_pages"])
+        self.assertIn("concepts/agentic-workflow.md", deps["10 Sources/articles/karpathy.html"]["wiki_pages"])
+
+        written = build_source_dependencies.write_dependencies(self.wiki, report)
+        self.assertNotIn('"wiki":', written.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

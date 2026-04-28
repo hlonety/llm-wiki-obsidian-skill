@@ -11,6 +11,7 @@ import sys
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 
 WIKILINK_RE = re.compile(r"!\[\[[^\]]+\]\]|\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]")
@@ -19,6 +20,9 @@ META_FILENAMES = {"schema.md", "index.md", "log.md", "topic-map.md", "overview.m
 IGNORED_DIRS = {".git", "assets", "_archive", "templates", "references", "scripts", "tests"}
 VOLATILITY_DAYS = {"high": 90, "medium": 180, "low": 365}
 STUB_BODY_WORDS = 80
+FORBIDDEN_LINK_TARGETS = {"schema", "index", "log", "topic-map", "overview", "questions", "source-manifest", "source-dependencies"}
+KEBAB_TARGET_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+NEAR_DUPLICATE_SLUG_THRESHOLD = 0.7
 
 
 def split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
@@ -136,6 +140,15 @@ def extract_wikilinks(text: str) -> list[str]:
     return links
 
 
+def extract_wikilink_targets(text: str) -> list[tuple[str, str]]:
+    links: list[tuple[str, str]] = []
+    for match in WIKILINK_RE.finditer(text):
+        target = match.group(1)
+        if target:
+            links.append((target.strip(), link_target(target)))
+    return links
+
+
 def parse_schema_tags(wiki: Path) -> set[str]:
     schema = first_existing(wiki, ["00 Meta/SCHEMA.md", "SCHEMA.md"])
     if not schema:
@@ -211,6 +224,7 @@ def lint_wiki(wiki_path: str | Path) -> dict[str, Any]:
         page_aliases[key].add(normalize_alias(frontmatter.get("title", key)))
 
         issues.extend(check_page_quality(key, rel, frontmatter, body))
+        issues.extend(check_link_hygiene(key, rel, body))
 
         if key not in listed_pages:
             issues.append({"code": "missing-index-entry", "severity": "medium", "page": key, "path": rel})
@@ -226,6 +240,8 @@ def lint_wiki(wiki_path: str | Path) -> dict[str, Any]:
             issues.append({"code": "orphan-page", "severity": "low", "page": key, "path": keys[key].relative_to(wiki).as_posix()})
 
     issues.extend(check_alias_overlaps(wiki, keys, page_aliases))
+    issues.extend(check_near_duplicate_slugs(wiki, keys))
+    issues.extend(check_source_notes(wiki))
     issues.extend(check_raw_hashes(wiki))
 
     return {
@@ -317,6 +333,120 @@ def check_page_quality(key: str, rel: str, frontmatter: dict[str, Any], body: st
             issues.append({"code": "unconfirmed-high-confidence", "severity": "high", "page": key, "path": rel})
 
     return issues
+
+
+def check_link_hygiene(key: str, rel: str, body: str) -> list[dict[str, Any]]:
+    issues: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for raw_target, target in extract_wikilink_targets(body):
+        pair = (raw_target, target)
+        if pair in seen:
+            continue
+        seen.add(pair)
+        normalized_path = raw_target.strip().replace("\\", "/")
+        stem = target.lower()
+        if stem in FORBIDDEN_LINK_TARGETS or normalized_path.lower().startswith("95 outputs/lint"):
+            issues.append({"code": "forbidden-wikilink", "severity": "medium", "page": key, "path": rel, "target": raw_target})
+        if not KEBAB_TARGET_RE.fullmatch(target):
+            issues.append({"code": "non-kebab-wikilink", "severity": "low", "page": key, "path": rel, "target": raw_target})
+    return issues
+
+
+def check_near_duplicate_slugs(wiki: Path, keys: dict[str, Path]) -> list[dict[str, Any]]:
+    issues: list[dict[str, Any]] = []
+    pages = sorted(keys)
+    for index, page in enumerate(pages):
+        left = slug_tokens(page)
+        if len(left) < 2:
+            continue
+        for other in pages[index + 1 :]:
+            right = slug_tokens(other)
+            if len(right) < 2:
+                continue
+            score = jaccard(left, right)
+            if score > NEAR_DUPLICATE_SLUG_THRESHOLD:
+                issues.append(
+                    {
+                        "code": "near-duplicate-slug",
+                        "severity": "low",
+                        "page": page,
+                        "path": keys[page].relative_to(wiki).as_posix(),
+                        "other_page": other,
+                        "other_path": keys[other].relative_to(wiki).as_posix(),
+                        "similarity": round(score, 2),
+                    }
+                )
+    return issues
+
+
+def slug_tokens(slug: str) -> set[str]:
+    return {token for token in slug.split("-") if token and len(token) > 1}
+
+
+def jaccard(left: set[str], right: set[str]) -> float:
+    if not left or not right:
+        return 0.0
+    return len(left & right) / len(left | right)
+
+
+def check_source_notes(wiki: Path) -> list[dict[str, Any]]:
+    issues: list[dict[str, Any]] = []
+    source_urls: dict[str, tuple[str, str]] = {}
+    for source_root in ["10 Sources", "raw"]:
+        root = wiki / source_root
+        if not root.exists():
+            continue
+        for path in sorted(root.rglob("*.md")):
+            rel = path.relative_to(wiki).as_posix()
+            text = path.read_text(encoding="utf-8")
+            frontmatter, _body = split_frontmatter(text)
+            if not frontmatter:
+                continue
+            if is_false(frontmatter.get("processed")):
+                issues.append({"code": "unprocessed-source", "severity": "medium", "path": rel})
+            if is_true(frontmatter.get("possibly_outdated")):
+                issues.append({"code": "possibly-outdated-source", "severity": "medium", "path": rel})
+            normalized_url = normalize_source_url(frontmatter.get("source_url") or frontmatter.get("url"))
+            if normalized_url:
+                existing = source_urls.get(normalized_url)
+                if existing:
+                    issues.append(
+                        {
+                            "code": "duplicate-source-url",
+                            "severity": "low",
+                            "path": rel,
+                            "other_path": existing[0],
+                            "source_url": existing[1],
+                        }
+                    )
+                else:
+                    source_urls[normalized_url] = (rel, str(frontmatter.get("source_url") or frontmatter.get("url")))
+    return issues
+
+
+def is_false(value: Any) -> bool:
+    if value is False:
+        return True
+    return str(value).strip().lower() in {"false", "no", "0"}
+
+
+def is_true(value: Any) -> bool:
+    if value is True:
+        return True
+    return str(value).strip().lower() in {"true", "yes", "1"}
+
+
+def normalize_source_url(value: Any) -> str:
+    if not value:
+        return ""
+    url = str(value).strip()
+    if not url:
+        return ""
+    parts = urlsplit(url)
+    if not parts.scheme or not parts.netloc:
+        return url.rstrip("/")
+    normalized = urlunsplit((parts.scheme.lower(), parts.netloc.lower(), parts.path.rstrip("/"), "", ""))
+    return normalized
 
 
 def is_personal_source(source: str) -> bool:

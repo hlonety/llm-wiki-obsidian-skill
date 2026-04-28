@@ -15,7 +15,10 @@ AI, LLMs, agents, prompts, tools, papers, workflows, evaluation, RAG, MCP, autom
 - Store durable answers and reports in `95 Outputs/`.
 - Keep open questions in `00 Meta/questions.md`.
 - Use `00 Meta/source-manifest.json` to track SHA-256 hashes for raw source files.
+- Use `00 Meta/source-dependencies.json` to track which pages depend on each source.
 - Personal writing may update positions but does not count as external source support.
+- Source notes start with `processed: false` and move to `processed: true` after wiki pages are updated.
+- Prefer English lowercase kebab-case filenames; store Chinese names and alternate terms in `title` and `aliases`.
 
 ## Tag Taxonomy
 
@@ -48,3 +51,5 @@ AI, LLMs, agents, prompts, tools, papers, workflows, evaluation, RAG, MCP, autom
 ## Update Policy
 
 When information conflicts, keep both claims with dates and sources, mark the page `contested: true`, and flag it for user review.
+
+When a source hash changes, re-ingest the source, review pages listed in `00 Meta/source-dependencies.json`, and log whether the update reinforced, corrected, contradicted, or invalidated prior claims.
