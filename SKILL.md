@@ -66,6 +66,10 @@ knowledge-base/
   BOOTSTRAP_PROMPT.md
   UPGRADE_PROMPT.md
   CLAUDE.md
+  AGENTS.md
+  GEMINI.md
+  HERMES.md
+  OPENCLAW.md
   README.md
 ```
 
@@ -74,7 +78,7 @@ Map Karpathy's layers like this:
 - Raw sources: `raw/`.
 - Source summaries: `wiki/sources/`.
 - Compiled wiki pages: `wiki/concepts/`, `wiki/entities/`, `wiki/synthesis/`, and `wiki/outputs/`.
-- Behavior contract and prompts: `CLAUDE.md`, `BOOTSTRAP_PROMPT.md`, `UPGRADE_PROMPT.md`.
+- Behavior contract and prompts: `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `HERMES.md`, `OPENCLAW.md`, `BOOTSTRAP_PROMPT.md`, `UPGRADE_PROMPT.md`.
 - Generated state: `wiki/.state/`.
 
 Read `references/obsidian-conventions.md` before initializing or significantly restructuring an Obsidian vault.
@@ -139,7 +143,7 @@ This skill is intentionally not tied to one agent. Use whatever equivalent tools
 
 If a tool named in another agent's documentation is unavailable, translate the action to the local equivalent instead of stopping.
 
-Compatibility target: Claude Code, OpenCode, OpenClaw, Hermes, Codex, Gemini-style agents, and any file-capable agent. The generated vault includes `CLAUDE.md` because the tutorial names that file as the behavior contract; its content must remain portable and not Claude-only. Other agents should read it as ordinary Markdown.
+Compatibility target: Claude Code, OpenCode, OpenClaw, Hermes, Codex, Gemini-style agents, and any file-capable agent. The generated vault includes `CLAUDE.md` because the tutorial names that file as the behavior contract; its content must remain portable and not Claude-only. It also generates `AGENTS.md`, `GEMINI.md`, `HERMES.md`, and `OPENCLAW.md` as short redirect files pointing agents back to `CLAUDE.md` and `$llm-wiki-obsidian`.
 
 Do not make Claude Code, qmd, or any other single tool a hard dependency. If qmd-style commands are available, they are optional accelerators; otherwise use normal file reads, search, and scripts. See `references/optional-integrations.md` for adapters.
 

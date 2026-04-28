@@ -144,6 +144,10 @@ class WikiScriptTests(unittest.TestCase):
             "BOOTSTRAP_PROMPT.md",
             "UPGRADE_PROMPT.md",
             "CLAUDE.md",
+            "AGENTS.md",
+            "GEMINI.md",
+            "HERMES.md",
+            "OPENCLAW.md",
             "README.md",
         }
 
@@ -155,6 +159,15 @@ class WikiScriptTests(unittest.TestCase):
             self.assertTrue((target / rel).is_file(), rel)
         self.assertIn("raw/", (target / "CLAUDE.md").read_text(encoding="utf-8"))
         self.assertIn("wiki/", (target / "CLAUDE.md").read_text(encoding="utf-8"))
+        for rel in ["AGENTS.md", "GEMINI.md", "HERMES.md", "OPENCLAW.md"]:
+            text = (target / rel).read_text(encoding="utf-8")
+            self.assertIn("CLAUDE.md", text)
+            self.assertIn("$llm-wiki-obsidian", text)
+
+        lint_wiki = load_module("lint_wiki", ROOT / "scripts" / "lint_wiki.py")
+        lint_report = lint_wiki.lint_wiki(target)
+        self.assertEqual(lint_report["summary"]["pages"], 0)
+        self.assertNotIn("missing-frontmatter", {issue["code"] for issue in lint_report["issues"]})
 
     def test_strict_layout_paths_are_first_class(self):
         lint_wiki = load_module("lint_wiki", ROOT / "scripts" / "lint_wiki.py")

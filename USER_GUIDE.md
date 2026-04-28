@@ -47,6 +47,10 @@ knowledge-base/
   BOOTSTRAP_PROMPT.md
   UPGRADE_PROMPT.md
   CLAUDE.md
+  AGENTS.md
+  GEMINI.md
+  HERMES.md
+  OPENCLAW.md
   README.md
 ```
 
@@ -67,7 +71,11 @@ knowledge-base/
 - `wiki/log.md`：操作日志，记录知识库怎么演化。
 - `wiki/overview.md`：健康仪表盘。
 - `wiki/QUESTIONS.md`：长期问题清单。
-- `CLAUDE.md`：行为准则。虽然叫 CLAUDE，但 Codex、Hermes、OpenCode 等也可以读。
+- `CLAUDE.md`：行为准则。虽然叫 CLAUDE，但 Codex、Gemini、Hermes、OpenClaw、OpenCode 等也可以读。
+- `AGENTS.md`：给 Codex/OpenAI 风格 agent 的短入口，转发到 `CLAUDE.md`。
+- `GEMINI.md`：给 Gemini CLI 的短入口，转发到 `CLAUDE.md`。
+- `HERMES.md`：给 Hermes 的短入口，转发到 `CLAUDE.md`。
+- `OPENCLAW.md`：给 OpenClaw 的短入口，转发到 `CLAUDE.md`。
 
 ## 第一次怎么建库
 

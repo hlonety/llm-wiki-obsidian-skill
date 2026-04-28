@@ -136,10 +136,14 @@ knowledge-base/
   BOOTSTRAP_PROMPT.md
   UPGRADE_PROMPT.md
   CLAUDE.md
+  AGENTS.md
+  GEMINI.md
+  HERMES.md
+  OPENCLAW.md
   README.md
 ```
 
-`CLAUDE.md` 是教程兼容的行为准则文件，但不是 Claude 专用。Codex、Hermes、OpenCode 等 agent 也应该把它当作普通 Markdown 规则读取。
+`CLAUDE.md` 是教程兼容的行为准则文件，但不是 Claude 专用。`AGENTS.md`、`GEMINI.md`、`HERMES.md`、`OPENCLAW.md` 是短转发入口，分别方便 Codex/OpenAI 风格 agent、Gemini CLI、Hermes、OpenClaw 先读 `CLAUDE.md`。
 
 ## 关键规则
 

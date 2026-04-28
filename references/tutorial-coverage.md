@@ -1,10 +1,10 @@
-# Tutorial Coverage
+# 教程覆盖度
 
-Use this file to check that the skill remains at least as complete as the raw/wiki LLM Wiki tutorial layout.
+用这份文件检查本 skill 是否至少覆盖 raw/wiki LLM Wiki 教程里的能力，并在此基础上增加更强的维护功能。
 
-## Strict Directory Parity
+## 严格目录对齐
 
-The default generated vault uses the tutorial structure:
+默认生成的知识库采用教程结构：
 
 ```text
 knowledge-base/
@@ -31,45 +31,50 @@ knowledge-base/
   BOOTSTRAP_PROMPT.md
   UPGRADE_PROMPT.md
   CLAUDE.md
+  AGENTS.md
+  GEMINI.md
+  HERMES.md
+  OPENCLAW.md
   README.md
 ```
 
-The skill adds hidden generated state under `wiki/.state/`:
+本 skill 额外在 `wiki/.state/` 下生成隐藏状态文件：
 
 - `source-manifest.json`
 - `source-dependencies.json`
 
-These files support SHA-256 and impact analysis without changing the visible tutorial layout.
+这些文件用于 SHA-256 哈希扫描和影响分析，不改变教程截图里的可见目录结构。
 
-## Functional Parity
+## 功能对齐
 
-- Raw sources are immutable under `raw/`.
-- Source summaries live under `wiki/sources/`.
-- Compiled concepts live under `wiki/concepts/`.
-- Entities live under `wiki/entities/`.
-- Cross-source analysis lives under `wiki/synthesis/`.
-- Durable answers and reports live under `wiki/outputs/`.
-- `wiki/index.md` is the first wiki file to read.
-- `wiki/log.md` is append-only.
-- `wiki/overview.md` is the health dashboard.
-- `wiki/QUESTIONS.md` is the open question queue.
-- `CLAUDE.md` is the behavior contract, but its content is portable to non-Claude agents.
-- `BOOTSTRAP_PROMPT.md` and `UPGRADE_PROMPT.md` are generated for initialization and system upgrades.
-- `scripts/lint.py` is generated as the local health-check entrypoint.
+- 原始资料固定放在 `raw/`，原则上只增不改。
+- 单个来源的摘要放在 `wiki/sources/`。
+- 稳定概念放在 `wiki/concepts/`。
+- 人物、公司、工具、模型、论文、数据集等实体放在 `wiki/entities/`。
+- 跨来源分析放在 `wiki/synthesis/`。
+- 可复用答案、报告、幻灯片、图表和审计结果放在 `wiki/outputs/`。
+- `wiki/index.md` 是 agent 进入 wiki 层后首先读取的文件。
+- `wiki/log.md` 是只追加的演化日志。
+- `wiki/overview.md` 是知识库健康仪表盘。
+- `wiki/QUESTIONS.md` 是开放问题队列。
+- `CLAUDE.md` 是行为契约，但内容必须可被非 Claude agent 使用。
+- `AGENTS.md`、`GEMINI.md`、`HERMES.md`、`OPENCLAW.md` 是转发入口，负责把不同 agent 指回 `CLAUDE.md`。
+- `BOOTSTRAP_PROMPT.md` 和 `UPGRADE_PROMPT.md` 用于初始化和系统升级。
+- `scripts/lint.py` 是本知识库自己的健康检查入口。
 
-## Enhancements Beyond The Tutorial
+## 超出教程的增强
 
-- SHA-256 scan with `scripts/scan_sources.py`.
-- Generated source manifest under `wiki/.state/source-manifest.json`.
-- Source dependency map with `scripts/build_source_dependencies.py`.
-- Raw-file to source-note to wiki-page impact tracing.
-- Source lifecycle fields: `processed`, `raw_file`, `raw_sha256`, `last_verified`, `possibly_outdated`, `canonical_source`, `language`, `domain`.
-- Web Clipper queue: raw clips in `raw/clippings/`, notes in `wiki/sources/`, `processed: false` until ingested.
-- Duplicate source URL detection.
-- Near-duplicate slug detection.
-- Non-kebab wikilink detection.
-- Forbidden links to maintenance pages such as `[[log]]` and `[[index]]`.
-- High-confidence promotion requires explicit human confirmation.
-- Personal writing does not count toward external `source_count`.
-- Staleness checks using `domain_volatility` and `last_reviewed`.
-- Evolution-log verbs: reinforced, corrected, contradicted, re-ingested, personal-position.
+- 用 `scripts/scan_sources.py` 做 SHA-256 扫描。
+- 在 `wiki/.state/source-manifest.json` 中记录原始资料清单。
+- 用 `scripts/build_source_dependencies.py` 生成来源依赖图。
+- 支持从 raw 文件到 source note，再到 wiki page 的影响追踪。
+- 支持来源生命周期字段：`processed`、`raw_file`、`raw_sha256`、`last_verified`、`possibly_outdated`、`canonical_source`、`language`、`domain`。
+- 支持 Web Clipper 队列：原始剪藏在 `raw/clippings/`，来源摘要在 `wiki/sources/`，吸收前保持 `processed: false`。
+- 检测重复来源 URL。
+- 检测近似重复 slug。
+- 检测非 kebab-case wikilink。
+- 检测指向 `[[log]]`、`[[index]]` 等维护页的普通链接。
+- 高置信度升级必须有人类显式确认。
+- 个人写作不计入外部证据 `source_count`。
+- 通过 `domain_volatility` 和 `last_reviewed` 做过期检查。
+- 演化日志使用稳定动词：`reinforced`、`corrected`、`contradicted`、`re-ingested`、`personal-position`。

@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from datetime import date, datetime, timezone
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -167,6 +167,10 @@ if __name__ == "__main__":
 - 质量：`security`, `privacy`, `reliability`, `alignment`, `cost`, `latency`
 - 元信息：`comparison`, `timeline`, `controversy`, `prediction`, `learning-path`
 """,
+        "AGENTS.md": agent_redirect("Codex / OpenAI 风格 agent"),
+        "GEMINI.md": agent_redirect("Gemini CLI"),
+        "HERMES.md": agent_redirect("Hermes"),
+        "OPENCLAW.md": agent_redirect("OpenClaw"),
         "README.md": """# Knowledge Base 知识库
 
 这是一个严格 raw/wiki 架构的 LLM Wiki 知识库。
@@ -180,17 +184,32 @@ if __name__ == "__main__":
     }
 
 
+def agent_redirect(agent_name: str) -> str:
+    return f"""# {agent_name} 入口规则
+
+请先读取并遵守 `CLAUDE.md`。这里的 `CLAUDE.md` 是本知识库的通用行为准则，不是 Claude 专用文件。
+
+如果当前环境已安装 llm-wiki-obsidian skill，请使用 `$llm-wiki-obsidian`。
+
+本知识库采用严格 `raw/` + `wiki/` 架构：
+
+- 原始资料放在 `raw/`，不要改写证据。
+- 整理后的知识放在 `wiki/`。
+- 开始操作前读取 `wiki/index.md`、`wiki/log.md`、`wiki/overview.md` 和 `wiki/QUESTIONS.md`。
+"""
+
+
 def state_files() -> dict[str, Any]:
     return {
         "wiki/.state/source-manifest.json": {
             "version": 1,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": None,
             "roots": ["raw"],
             "files": {},
         },
         "wiki/.state/source-dependencies.json": {
             "version": 1,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": None,
             "dependencies": {},
             "pages": {},
         },

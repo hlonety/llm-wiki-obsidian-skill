@@ -1,48 +1,52 @@
-# Obsidian Conventions
+# Obsidian 约定
 
-Use these conventions when the user wants an Obsidian-first LLM Wiki using the strict tutorial layout.
+当用户希望建立面向 Obsidian 的 LLM Wiki，并且要求严格采用教程里的 raw/wiki 结构时，遵守这份约定。
 
-## Folder Layout
+## 目录结构
 
 ```text
 knowledge-base/
-  raw/              immutable original sources
-  raw/articles/     long-form web or Markdown articles
-  raw/clippings/    Web Clipper captures
-  raw/images/       screenshots and charts
-  raw/pdfs/         PDF files
-  raw/notes/        quick notes and scratch captures
-  raw/personal/     user-authored essays, analysis, and investment notes
-  wiki/             compiled LLM-readable wiki
-  wiki/index.md     first wiki file to read
-  wiki/log.md       append-only evolution log
-  wiki/overview.md  health dashboard
-  wiki/QUESTIONS.md open question queue
-  wiki/sources/     one summary page per source
-  wiki/concepts/    durable concepts, ideas, and patterns
-  wiki/entities/    people, companies, tools, models, papers, datasets, benchmarks
-  wiki/synthesis/   cross-source analysis, workflows, maps, prompt patterns
-  wiki/outputs/     saved answers, reports, slides, charts, lint reports
-  wiki/templates/   page templates
-  wiki/.state/      generated manifests and dependency maps
-  scripts/lint.py   local health-check entrypoint
+  raw/              不改写的原始资料
+  raw/articles/     长文、网页文章或 Markdown 文章
+  raw/clippings/    Web Clipper 剪藏
+  raw/images/       截图、图表、图片
+  raw/pdfs/         PDF 文件
+  raw/notes/        快速记录和临时捕获
+  raw/personal/     用户自己写的文章、分析、投资笔记
+  wiki/             LLM 可读取的整理后 wiki
+  wiki/index.md     agent 进入 wiki 层后首先读取的文件
+  wiki/log.md       只追加的演化日志
+  wiki/overview.md  健康仪表盘
+  wiki/QUESTIONS.md 开放问题队列
+  wiki/sources/     每个来源一页摘要
+  wiki/concepts/    稳定概念、想法、模式
+  wiki/entities/    人物、公司、工具、模型、论文、数据集、benchmark
+  wiki/synthesis/   跨来源分析、工作流、地图、提示词模式
+  wiki/outputs/     保存答案、报告、幻灯片、图表、lint 报告
+  wiki/templates/   页面模板
+  wiki/.state/      自动生成的 manifest 和依赖图
+  scripts/lint.py   本知识库的本地健康检查入口
   BOOTSTRAP_PROMPT.md
   UPGRADE_PROMPT.md
-  CLAUDE.md         portable behavior contract
+  CLAUDE.md         可移植的行为契约，不是 Claude 专用
+  AGENTS.md         Codex/OpenAI 风格 agent 的转发入口
+  GEMINI.md         Gemini CLI 的转发入口
+  HERMES.md         Hermes 的转发入口
+  OPENCLAW.md       OpenClaw 的转发入口
   README.md
 ```
 
-## Filenames and Links
+## 文件名和链接
 
-- Use lowercase kebab-case filenames: `agentic-workflow.md`.
-- Use frontmatter `title` for readable names: `title: Agentic Workflow`.
-- Link by filename stem: `[[agentic-workflow]]`.
-- Use aliases for alternate names.
-- Prefer explicit links over tag-only organization.
-- Avoid linking normal wiki pages to system pages such as `[[log]]`, `[[index]]`, `[[overview]]`, and `[[QUESTIONS]]`.
-- Before creating a page, search filename stems, titles, and aliases to avoid duplicates.
+- 文件名使用小写 kebab-case，例如 `agentic-workflow.md`。
+- 可读标题写在 frontmatter 的 `title` 中，例如 `title: Agentic Workflow`。
+- wikilink 用文件名主体，例如 `[[agentic-workflow]]`。
+- 别名写入 `aliases`，不要用多个相似文件名表达同一个概念。
+- 优先使用明确链接，不要只靠 tag 组织知识。
+- 普通 wiki 页面避免链接到 `[[log]]`、`[[index]]`、`[[overview]]`、`[[QUESTIONS]]` 等系统维护页。
+- 新建页面前，先搜索文件名主体、标题和别名，避免重复概念页。
 
-## Standard Frontmatter
+## 标准 Frontmatter
 
 ```yaml
 ---
@@ -62,7 +66,7 @@ high_confirmed: false
 ---
 ```
 
-Optional fields:
+可选字段：
 
 ```yaml
 evidence:
@@ -76,19 +80,19 @@ high_confirmed_by:
 high_confirmed_on:
 ```
 
-## AI Knowledge Taxonomy
+## AI 知识分类
 
-Start with this tag taxonomy for an AI vault. Add tags deliberately in `CLAUDE.md` before using them.
+AI 知识库可以先使用下面这套 tag。新增 tag 前，先在 `CLAUDE.md` 里登记，避免同义 tag 泛滥。
 
-- Areas: `agent`, `llm`, `rag`, `memory`, `evaluation`, `prompt`, `workflow`, `automation`
-- Technical: `architecture`, `training`, `fine-tuning`, `inference`, `tool-use`, `mcp`, `data`
-- Objects: `model`, `paper`, `tool`, `framework`, `benchmark`, `dataset`, `company`, `person`
-- Quality: `security`, `privacy`, `reliability`, `alignment`, `cost`, `latency`
-- Meta: `comparison`, `timeline`, `controversy`, `prediction`, `learning-path`
+- 领域：`agent`、`llm`、`rag`、`memory`、`evaluation`、`prompt`、`workflow`、`automation`
+- 技术：`architecture`、`training`、`fine-tuning`、`inference`、`tool-use`、`mcp`、`data`
+- 对象：`model`、`paper`、`tool`、`framework`、`benchmark`、`dataset`、`company`、`person`
+- 质量：`security`、`privacy`、`reliability`、`alignment`、`cost`、`latency`
+- 元信息：`comparison`、`timeline`、`controversy`、`prediction`、`learning-path`
 
-## Dataview Examples
+## Dataview 示例
 
-Open questions:
+开放问题：
 
 ```dataview
 TASK
@@ -96,7 +100,7 @@ FROM "wiki/QUESTIONS.md"
 WHERE !completed
 ```
 
-Pages needing review:
+需要复查的页面：
 
 ```dataview
 TABLE status, confidence, domain_volatility, last_reviewed
@@ -105,7 +109,7 @@ WHERE status = "contested" OR confidence = "low" OR domain_volatility = "high"
 SORT last_reviewed ASC
 ```
 
-Recently updated pages:
+最近更新的页面：
 
 ```dataview
 TABLE type, status, tags
@@ -114,7 +118,7 @@ SORT updated DESC
 LIMIT 20
 ```
 
-Source-backed tool notes:
+有来源支持的工具笔记：
 
 ```dataview
 TABLE sources, confidence
@@ -123,11 +127,11 @@ WHERE length(sources) > 0
 SORT title ASC
 ```
 
-## Source Notes
+## 来源摘要
 
-A source note is not the same as a concept page. A source note captures what one source said. A concept page synthesizes across one or more sources.
+来源摘要页不是概念页。来源摘要页记录“某一个来源说了什么”；概念页负责综合一个或多个来源，沉淀出更稳定的知识。
 
-Recommended source frontmatter:
+推荐的来源 frontmatter：
 
 ```yaml
 ---
@@ -151,69 +155,69 @@ tags: []
 ---
 ```
 
-Put source notes in `wiki/sources/`. Keep original captures in `raw/`. Put interpretation in linked wiki pages.
+来源摘要放在 `wiki/sources/`。原始捕获文件放在 `raw/`。解释、判断和综合写到链接的 wiki 页面里。
 
-Source lifecycle fields:
+来源生命周期字段：
 
-- `processed: false`: the source is captured but not integrated.
-- `processed: true`: source summary and affected wiki pages have been updated.
-- `raw_file`: relative path to the original capture or attachment.
-- `raw_sha256`: hash of the raw file.
-- `possibly_outdated: true`: source should be rechecked before relying on it.
-- `canonical_source`: preferred URL when a clip, mirror, or repost duplicates another source.
+- `processed: false`：来源已经捕获，但还没有吸收到 wiki。
+- `processed: true`：来源摘要和受影响的 wiki 页面已经更新。
+- `raw_file`：原始捕获或附件的相对路径。
+- `raw_sha256`：原始文件的哈希值。
+- `possibly_outdated: true`：依赖该来源前需要重新检查。
+- `canonical_source`：当剪藏、镜像或转载重复时，记录优先使用的原始 URL。
 
 ## Source Manifest
 
-`wiki/.state/source-manifest.json` is generated by `scripts/scan_sources.py`. It records:
+`wiki/.state/source-manifest.json` 由 `scripts/scan_sources.py` 生成。它记录：
 
-- relative path,
-- SHA-256 hash,
-- file size,
-- modified timestamp.
+- 相对路径
+- SHA-256 哈希值
+- 文件大小
+- 修改时间
 
-Use it to detect:
+用它识别：
 
-- `new`: file has not been seen before,
-- `changed`: path exists but hash changed,
-- `deleted`: manifest has a file that no longer exists,
-- `unchanged`: path and hash match.
+- `new`：之前没见过的新文件。
+- `changed`：路径存在，但哈希值变化。
+- `deleted`：manifest 里有记录，但文件已经不存在。
+- `unchanged`：路径和哈希值都没变。
 
-Do not edit the manifest by hand unless repairing a known bad scan.
+除非是在修复已知的坏扫描结果，否则不要手动编辑 manifest。
 
 ## Source Dependencies
 
-`wiki/.state/source-dependencies.json` is generated by `scripts/build_source_dependencies.py`. It maps:
+`wiki/.state/source-dependencies.json` 由 `scripts/build_source_dependencies.py` 生成。它映射：
 
-- source notes to affected wiki pages,
-- raw files to source notes,
-- raw files to affected wiki pages.
+- 来源摘要到受影响的 wiki 页面。
+- raw 文件到来源摘要。
+- raw 文件到受影响的 wiki 页面。
 
-Use it after a source hash changes to decide which pages need re-ingest or review. Do not delete wiki pages automatically just because a raw file is missing.
+当某个来源的哈希变化后，用它判断哪些页面需要重新吸收或复查。不要因为 raw 文件缺失就自动删除 wiki 页面。
 
-## Personal Writing
+## 个人写作
 
-Store user-authored raw material in `raw/personal/` and its source summaries in `wiki/sources/`.
+用户自己写的原始材料放在 `raw/personal/`，对应的来源摘要放在 `wiki/sources/`。
 
-Personal writing pages may contain:
+个人写作页可以包含：
 
-- the user's argument,
-- the user's position on a concept,
-- referenced external evidence,
-- limitations,
-- supersession status.
+- 用户自己的论点。
+- 用户对某个概念的立场。
+- 引用的外部证据。
+- 局限性。
+- 是否已被后续内容替代。
 
-When ingesting personal writing:
+吸收个人写作时：
 
-- Write the user's view into `## My Position` on relevant concept pages.
-- Do not increment external `source_count`.
-- Do not promote confidence based on personal writing.
-- If the personal writing cites external sources, link those sources separately.
+- 把用户观点写入相关概念页的 `## My Position`。
+- 不增加外部证据 `source_count`。
+- 不因为个人写作而提升置信度。
+- 如果个人写作引用了外部来源，把那些外部来源单独链接出来。
 
-## Graph Hygiene
+## 图谱卫生
 
-The useful graph is mainly the compiled wiki layer. Keep source, meta, and output links deliberate:
+真正有用的图谱主要是整理后的 wiki 层。来源、元信息和输出文件的链接要有意控制：
 
-- Source notes may link to affected wiki pages.
-- Wiki pages should cite sources through frontmatter or a Sources section.
-- Avoid ordinary concept pages linking to maintenance files such as logs, indexes, lint reports, or generated JSON.
-- Use `graph-excluded: true` in frontmatter for generated output pages if the vault's Obsidian graph becomes noisy.
+- 来源摘要可以链接到受影响的 wiki 页面。
+- wiki 页面应该通过 frontmatter 或 `Sources` 小节引用来源。
+- 普通概念页避免链接到日志、索引、lint 报告或自动生成的 JSON 等维护文件。
+- 如果 Obsidian 图谱太嘈杂，可以给生成类输出页加 `graph-excluded: true`。

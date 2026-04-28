@@ -16,7 +16,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 WIKILINK_RE = re.compile(r"!\[\[[^\]]+\]\]|\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]")
 REQUIRED_FRONTMATTER = {"title", "created", "updated", "type", "tags", "sources"}
-RULES_CANDIDATES = ["CLAUDE.md", "AGENTS.md", "GEMINI.md", "wiki/SCHEMA.md", "00 Meta/SCHEMA.md", "SCHEMA.md"]
+RULES_CANDIDATES = ["CLAUDE.md", "AGENTS.md", "GEMINI.md", "HERMES.md", "OPENCLAW.md", "wiki/SCHEMA.md", "00 Meta/SCHEMA.md", "SCHEMA.md"]
 INDEX_CANDIDATES = ["wiki/index.md", "00 Meta/index.md", "index.md"]
 SOURCE_ROOTS = ["wiki/sources", "10 Sources", "raw"]
 META_FILENAMES = {
@@ -24,6 +24,8 @@ META_FILENAMES = {
     "bootstrap_prompt.md",
     "claude.md",
     "gemini.md",
+    "hermes.md",
+    "openclaw.md",
     "schema.md",
     "index.md",
     "log.md",
