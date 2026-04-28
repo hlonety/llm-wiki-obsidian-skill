@@ -1,7 +1,6 @@
-# Upgrade Prompt
+# Upgrade Prompt 升级提示词
 
-Use the llm-wiki-obsidian skill to audit this knowledge base against the current method.
+请使用 llm-wiki-obsidian skill 按当前方法审计并升级这个知识库。
 
-Check raw source hashes, source lifecycle fields, source dependencies, duplicate concepts, broken links,
-open questions, stale pages, and missing index entries. Propose a small migration plan before changing
-more than 10 files.
+请检查 raw 文件哈希、来源生命周期字段、源依赖图、重复概念、断链、开放问题、过期页面和缺失索引项。
+如果预计要修改超过 10 个文件，先提出迁移计划，再开始执行。

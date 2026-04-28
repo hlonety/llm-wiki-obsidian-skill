@@ -1,107 +1,112 @@
 # LLM Wiki Obsidian Skill
 
-A portable agent skill for maintaining a strict `raw/` + `wiki/` LLM Wiki based on Andrej Karpathy's LLM Wiki pattern.
+这是一个给 AI Agent 使用的 LLM Wiki 技能，用来维护严格 `raw/` + `wiki/` 架构的 Obsidian/Markdown 知识库。方法论来自 Andrej Karpathy 的 LLM Wiki 思路，并补充了哈希扫描、源依赖图、健康审计、置信度规则和个人写作规则。
 
-It is designed for AI knowledge bases: LLMs, agents, prompts, tools, papers, workflows, evaluation, RAG, MCP, automation, and learning notes.
+如果你不太懂代码，先看中文教程：[USER_GUIDE.md](USER_GUIDE.md)。
 
-## What It Does
+## 适合什么场景
 
-This skill teaches an agent to maintain a compounding Markdown wiki:
+这个 skill 适合管理 AI 知识库，例如：
 
-- Preserve raw sources.
-- Compile durable source summaries, concepts, entities, synthesis pages, outputs, and questions.
-- Keep Obsidian wikilinks and frontmatter clean.
-- Track sources, confidence, stale claims, and contradictions.
-- Keep open questions, durable outputs, and personal writing separate from external evidence.
-- Compute SHA-256 hashes for raw source files and detect new, changed, or deleted files.
-- Build source-to-page dependency maps so changed raw files can trigger targeted review.
-- Track source lifecycle fields such as `processed`, `raw_file`, `raw_sha256`, `last_verified`, and `possibly_outdated`.
-- Audit broken links, missing index entries, orphan pages, duplicate URLs, near-duplicate slugs, link hygiene, and drift.
+- LLM、Agent、RAG、Memory、MCP。
+- Prompt、工作流、自动化。
+- 模型、工具、论文、人物、公司、数据集。
+- 学习笔记、网页剪藏、PDF、自己的分析文章。
 
-## Install
+## 它做什么
+
+它让 agent 按下面的方式维护知识库：
+
+- 把原始资料保存在 `raw/`，尽量不改。
+- 把来源摘要、概念、实体、综合分析、长期答案保存在 `wiki/`。
+- 用 Obsidian wikilink 和 YAML frontmatter 保持结构清晰。
+- 跟踪来源、置信度、过期风险、矛盾观点和开放问题。
+- 计算 raw 文件 SHA-256 哈希值，识别新增、变更、删除文件。
+- 生成源依赖图，知道某个 raw 文件变化后会影响哪些 wiki 页面。
+- 审计断链、重复 URL、近重复概念、未处理来源、索引缺失和高置信度误用。
+
+## 安装
 
 ### Codex
 
-Ask Codex to install or use this skill from the GitHub repository URL:
+在 Codex 里说：
 
 ```text
 Install the skill from https://github.com/hlonety/llm-wiki-obsidian-skill
 ```
 
-If installing manually, copy this repository into your Codex skills directory:
+或者手动安装：
 
 ```bash
 mkdir -p ~/.codex/skills
 git clone https://github.com/hlonety/llm-wiki-obsidian-skill ~/.codex/skills/llm-wiki-obsidian
 ```
 
-Restart Codex after installation.
+安装后重启 Codex，新的 skill 才会自动进入技能列表。
 
-### Other Agents
+### 其他 Agent
 
-Point the agent at `SKILL.md` and ask it to follow the instructions. The skill avoids provider-specific tool names, so Claude Code, OpenCode, OpenClaw, Hermes, Gemini, Codex, and other file-capable agents can adapt it.
+这个 skill 不绑定 Codex，也不强依赖 Claude Code 或 qmd。Claude Code、OpenCode、OpenClaw、Hermes、Gemini 风格 agent 或其他能读写文件的 agent，都可以读取本仓库的 `SKILL.md` 后执行。
 
-Common patterns:
+常见用法：
 
-- Claude Code: clone or copy this folder into the local skills/rules location you use, or reference `SKILL.md` from `CLAUDE.md`.
-- OpenCode / OpenClaw: add this repository as a reusable skill/rules folder and point the agent to `SKILL.md`.
-- Hermes: import the folder as a skill or copy the `SKILL.md` body into a Hermes skill wrapper.
-- Any other agent: give it the repository URL and ask it to read `SKILL.md` before touching the vault.
+- Claude Code：把仓库放进你的 skills/rules 位置，或在项目 `CLAUDE.md` 里引用本仓库的 `SKILL.md`。
+- OpenCode / OpenClaw：把本仓库作为 rules/skills 文件夹，并要求 agent 先读 `SKILL.md`。
+- Hermes：导入为 skill，或把 `SKILL.md` 内容包装成 Hermes skill。
+- 其他 agent：把仓库 URL 发给 agent，让它先读 `SKILL.md` 再操作知识库。
 
-The instructions are tool-neutral. When a platform has different tool names for file search, file editing, web extraction, or code execution, the agent should translate the action to its local equivalent.
+## 快速开始
 
-## Quick Start
-
-Create an AI knowledge vault:
+让 agent 创建一个知识库：
 
 ```text
-Use llm-wiki-obsidian to create a strict knowledge-base for my AI knowledge at ~/wiki/knowledge-base.
+使用 $llm-wiki-obsidian 在 ~/wiki/knowledge-base 创建一个严格 raw/wiki 架构的 AI 知识库。
 ```
 
-Or run the scaffold script directly:
+或者直接运行脚本：
 
 ```bash
 python3 scripts/init_knowledge_base.py ~/wiki/knowledge-base
 ```
 
-Ingest a source:
+把文章整理进知识库：
 
 ```text
-Use llm-wiki-obsidian to add this article to my AI vault and update related concept pages: https://example.com/article
+使用 $llm-wiki-obsidian 把这篇文章加入我的 AI 知识库，并更新相关概念页：https://example.com/article
 ```
 
-Query the wiki:
+基于知识库提问：
 
 ```text
-Based on my LLM Wiki, explain the difference between RAG memory and compiled wiki memory.
+基于我的 LLM Wiki，解释 RAG memory 和 compiled wiki memory 的区别。
 ```
 
-Audit the vault:
-
-```bash
-python3 scripts/lint_wiki.py ~/wiki/knowledge-base
-```
-
-Scan raw sources and update the hash manifest:
+扫描 raw 文件：
 
 ```bash
 python3 scripts/scan_sources.py ~/wiki/knowledge-base
 python3 scripts/scan_sources.py ~/wiki/knowledge-base --write
 ```
 
-Build the source dependency map:
+生成源依赖图：
 
 ```bash
 python3 scripts/build_source_dependencies.py ~/wiki/knowledge-base --write
 ```
 
-Rebuild the index:
+审计知识库：
+
+```bash
+python3 scripts/lint_wiki.py ~/wiki/knowledge-base
+```
+
+重建索引：
 
 ```bash
 python3 scripts/rebuild_index.py ~/wiki/knowledge-base --write
 ```
 
-## Strict Knowledge-Base Layout
+## 默认目录
 
 ```text
 knowledge-base/
@@ -134,27 +139,24 @@ knowledge-base/
   README.md
 ```
 
-`CLAUDE.md` is the tutorial-compatible behavior contract. It is not Claude-only; other agents should read it as a normal Markdown rules file.
+`CLAUDE.md` 是教程兼容的行为准则文件，但不是 Claude 专用。Codex、Hermes、OpenCode 等 agent 也应该把它当作普通 Markdown 规则读取。
 
-## Knowledge Rules
+## 关键规则
 
-- `confidence: high` is never automatic. It requires explicit user confirmation.
-- Personal writing records the user's position but does not count toward external `source_count`.
-- Fast-moving pages use `domain_volatility` and `last_reviewed` so stale claims can be audited.
-- Durable query results, reflection reports, comparison tables, and slide outlines go in `wiki/outputs/`.
-- `scan_sources.py` maintains `wiki/.state/source-manifest.json` and reports `new`, `changed`, `deleted`, and `unchanged` source files.
-- `build_source_dependencies.py` maintains `wiki/.state/source-dependencies.json` for raw-file, source-note, and wiki-page impact tracking.
-- Web Clipper or browser-saved notes should enter as `processed: false` source notes and be batch-ingested later.
-- Use English lowercase kebab-case slugs; put Chinese names and alternate terms in titles and aliases.
-- `REFLECT`, `MERGE`, and `ADD-QUESTION` operations are documented in `references/operations.md`.
-- qmd-style tools are optional adapters, not required dependencies.
+- `confidence: high` 不能自动设置，必须经过人类明确确认。
+- 个人写作可以记录你的立场，但不能计入外部 `source_count`。
+- 快速变化的主题要用 `domain_volatility` 和 `last_reviewed` 跟踪过期风险。
+- 长期答案、反思报告、对比表格、幻灯片大纲放在 `wiki/outputs/`。
+- Web Clipper 或浏览器保存的内容先进入 `processed: false` 队列，之后批量整理。
+- 文件名优先使用英文 lowercase kebab-case；中文名和别名放进 `title` 和 `aliases`。
+- qmd 只是可选工具，不是必需依赖。
 
-## Source
+## 来源
 
-Inspired by Andrej Karpathy's original LLM Wiki method:
+灵感来自 Andrej Karpathy 的 LLM Wiki 原始方法：
 
 https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f
 
-## License
+## 许可证
 
 MIT

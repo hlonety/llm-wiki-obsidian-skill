@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Local lint entrypoint for this knowledge base.
+"""这个知识库的本地健康检查入口。
 
-Preferred: run the richer llm-wiki skill script from the installed skill repo:
+更完整的审计建议运行已安装 llm-wiki skill 仓库里的脚本：
 python3 /path/to/llm-wiki-obsidian-skill/scripts/lint_wiki.py /path/to/knowledge-base
 """
 
@@ -14,11 +14,11 @@ def main() -> int:
     wiki = root / "wiki"
     missing = [str(path.relative_to(root)) for path in [raw, wiki, wiki / "index.md", root / "CLAUDE.md"] if not path.exists()]
     if missing:
-        print("Missing required paths:")
+        print("缺少必要路径：")
         for item in missing:
             print(f"- {item}")
         return 1
-    print("Basic structure check passed. Use the llm-wiki skill scripts for full lint, hash, and state checks.")
+    print("基础结构检查通过。完整 lint、哈希和状态检查请使用 llm-wiki skill 脚本。")
     return 0
 
 

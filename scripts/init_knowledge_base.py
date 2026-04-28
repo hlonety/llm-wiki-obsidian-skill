@@ -44,47 +44,47 @@ def init_knowledge_base(target_path: str | Path, overwrite: bool = False) -> dic
 def seed_files() -> dict[str, str]:
     today = date.today().isoformat()
     return {
-        "wiki/index.md": f"""# LLM Wiki Index
+        "wiki/index.md": f"""# LLM Wiki 索引
 
-> First file for agents to read after `CLAUDE.md`.
-> Last updated: {today}
+> Agent 读取 `CLAUDE.md` 后，应优先读取这个文件。
+> 最后更新：{today}
 
-## Sources
+## Sources 来源摘要
 
-## Concepts
+## Concepts 概念
 
-## Entities
+## Entities 实体
 
-## Synthesis
+## Synthesis 综合分析
 
-## Outputs
+## Outputs 输出
 """,
-        "wiki/log.md": f"""# Evolution Log
+        "wiki/log.md": f"""# Evolution Log 演化日志
 
 ## {today}
 
-- initialized: created strict `raw/` + `wiki/` LLM Wiki structure.
+- initialized：创建严格 `raw/` + `wiki/` LLM Wiki 结构。
 """,
-        "wiki/overview.md": f"""# Knowledge Base Health Dashboard
+        "wiki/overview.md": f"""# Knowledge Base Health Dashboard 知识库健康仪表盘
 
-- Last audit: {today}
-- Open source queue: 0
-- Possibly outdated sources: 0
-- Contested pages: 0
-- Thin pages: 0
+- 最近审计：{today}
+- 待处理来源：0
+- 可能过期来源：0
+- 有争议页面：0
+- 薄弱页面：0
 """,
-        "wiki/QUESTIONS.md": """# Questions
+        "wiki/QUESTIONS.md": """# Questions 问题队列
 
-## Open
+## Open 未解决
 
-- [ ] What should this knowledge base help answer first?
+- [ ] 这个知识库首先应该帮助回答什么问题？
 
-## Resolved
+## Resolved 已解决
 """,
         "scripts/lint.py": """#!/usr/bin/env python3
-\"\"\"Local lint entrypoint for this knowledge base.
+\"\"\"这个知识库的本地健康检查入口。
 
-Preferred: run the richer llm-wiki skill script from the installed skill repo:
+更完整的审计建议运行已安装 llm-wiki skill 仓库里的脚本：
 python3 /path/to/llm-wiki-obsidian-skill/scripts/lint_wiki.py /path/to/knowledge-base
 \"\"\"
 
@@ -97,87 +97,85 @@ def main() -> int:
     wiki = root / "wiki"
     missing = [str(path.relative_to(root)) for path in [raw, wiki, wiki / "index.md", root / "CLAUDE.md"] if not path.exists()]
     if missing:
-        print("Missing required paths:")
+        print("缺少必要路径：")
         for item in missing:
             print(f"- {item}")
         return 1
-    print("Basic structure check passed. Use the llm-wiki skill scripts for full lint, hash, and state checks.")
+    print("基础结构检查通过。完整 lint、哈希和状态检查请使用 llm-wiki skill 脚本。")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
 """,
-        "BOOTSTRAP_PROMPT.md": """# Bootstrap Prompt
+        "BOOTSTRAP_PROMPT.md": """# Bootstrap Prompt 初始化提示词
 
-Use the llm-wiki-obsidian skill to initialize and maintain this knowledge base.
+请使用 llm-wiki-obsidian skill 初始化和维护这个知识库。
 
-First read `CLAUDE.md`, then `wiki/index.md`, `wiki/log.md`, `wiki/overview.md`, and `wiki/QUESTIONS.md`.
-Preserve all raw material under `raw/`. Write compiled knowledge under `wiki/`.
+开始前先读取 `CLAUDE.md`，再读取 `wiki/index.md`、`wiki/log.md`、`wiki/overview.md` 和 `wiki/QUESTIONS.md`。
+所有原始资料保存在 `raw/`，不要改写证据。整理后的知识写入 `wiki/`。
 """,
-        "UPGRADE_PROMPT.md": """# Upgrade Prompt
+        "UPGRADE_PROMPT.md": """# Upgrade Prompt 升级提示词
 
-Use the llm-wiki-obsidian skill to audit this knowledge base against the current method.
+请使用 llm-wiki-obsidian skill 按当前方法审计并升级这个知识库。
 
-Check raw source hashes, source lifecycle fields, source dependencies, duplicate concepts, broken links,
-open questions, stale pages, and missing index entries. Propose a small migration plan before changing
-more than 10 files.
+请检查 raw 文件哈希、来源生命周期字段、源依赖图、重复概念、断链、开放问题、过期页面和缺失索引项。
+如果预计要修改超过 10 个文件，先提出迁移计划，再开始执行。
 """,
-        "CLAUDE.md": """# LLM Behavior Contract
+        "CLAUDE.md": """# LLM Behavior Contract 行为准则
 
-This file is a portable behavior contract for any file-capable agent. The filename follows the original
-LLM Wiki tutorial, but the rules are not Claude-only.
+这个文件是给所有能读写文件的 agent 使用的行为准则。文件名沿用原始 LLM Wiki 教程里的 `CLAUDE.md`，但规则不是 Claude 专用；Codex、Hermes、OpenCode、OpenClaw 等也应该读取。
 
-## Directory Contract
+## Directory Contract 目录约定
 
-- `raw/`: immutable original sources. Add files here; do not rewrite evidence.
-- `raw/articles/`: long-form web or Markdown articles.
-- `raw/clippings/`: Web Clipper captures.
-- `raw/images/`: screenshots and charts.
-- `raw/pdfs/`: PDF files.
-- `raw/notes/`: quick notes and scratch captures.
-- `raw/personal/`: user-authored essays, analysis, and investment notes.
-- `wiki/index.md`: first wiki file to read.
-- `wiki/log.md`: append-only evolution log.
-- `wiki/overview.md`: knowledge base health dashboard.
-- `wiki/QUESTIONS.md`: open question queue.
-- `wiki/sources/`: one summary page per source.
-- `wiki/concepts/`: durable concepts, ideas, and patterns.
-- `wiki/entities/`: people, companies, tools, models, papers, datasets, and benchmarks.
-- `wiki/synthesis/`: cross-source analysis and maps.
-- `wiki/outputs/`: saved answers, reports, slides, charts, and lint reports.
-- `wiki/templates/`: page templates.
+- `raw/`：不可变的原始来源。新资料放这里，不要改写证据。
+- `raw/articles/`：长文章、网页正文、Markdown 文章。
+- `raw/clippings/`：Web Clipper 或浏览器剪藏。
+- `raw/images/`：截图、图表、图片。
+- `raw/pdfs/`：PDF 文件。
+- `raw/notes/`：临时记录和零散捕获。
+- `raw/personal/`：用户自己写的文章、分析、投资笔记。
+- `wiki/index.md`：优先读取的 wiki 索引。
+- `wiki/log.md`：只追加的演化日志。
+- `wiki/overview.md`：知识库健康仪表盘。
+- `wiki/QUESTIONS.md`：开放问题队列。
+- `wiki/sources/`：每个来源一页摘要。
+- `wiki/concepts/`：长期概念、思想、模式。
+- `wiki/entities/`：人物、公司、工具、模型、论文、数据集、基准。
+- `wiki/synthesis/`：跨来源分析、地图、工作流。
+- `wiki/outputs/`：保存的答案、报告、幻灯片大纲、图表、lint 报告。
+- `wiki/templates/`：页面模板。
 
-## Operating Rules
+## Operating Rules 操作规则
 
-- Read this file, `wiki/index.md`, recent `wiki/log.md`, and `wiki/QUESTIONS.md` before editing.
-- Preserve raw sources. Add corrections and interpretations to wiki pages.
-- Source notes track `processed`, `raw_file`, `raw_sha256`, `last_verified`, and `possibly_outdated`.
-- Treat `processed: false`, changed hashes, and `possibly_outdated: true` as the ingest queue.
-- Use lowercase kebab-case filenames. Put Chinese names and alternate terms in `title` and `aliases`.
-- Search filenames, titles, and aliases before creating pages.
-- Every factual claim should link back to source notes or raw files.
-- Personal writing may update `## My Position`, but it does not count as external evidence.
-- `confidence: high` requires explicit human confirmation.
-- Log meaningful changes as reinforced, corrected, contradicted, re-ingested, or personal-position.
+- 编辑前先读本文件、`wiki/index.md`、最近的 `wiki/log.md` 和 `wiki/QUESTIONS.md`。
+- 保留 raw 原始来源。修正、解释和综合写入 wiki 页面。
+- 来源笔记要跟踪 `processed`、`raw_file`、`raw_sha256`、`last_verified` 和 `possibly_outdated`。
+- 把 `processed: false`、哈希变化、`possibly_outdated: true` 当作待处理队列。
+- 文件名使用 lowercase kebab-case。中文名和别名写进 `title` 和 `aliases`。
+- 新建页面前先搜索文件名、标题和别名。
+- 事实性主张应能追溯到来源笔记或 raw 文件。
+- 个人写作可以更新 `## My Position`，但不能当作外部证据。
+- `confidence: high` 必须经过人类明确确认。
+- 重要变化要记录为 reinforced、corrected、contradicted、re-ingested 或 personal-position。
 
-## Tag Taxonomy
+## Tag Taxonomy 标签分类
 
-- Areas: `agent`, `llm`, `rag`, `memory`, `evaluation`, `prompt`, `workflow`, `automation`
-- Technical: `architecture`, `training`, `fine-tuning`, `inference`, `tool-use`, `mcp`, `data`
-- Objects: `model`, `paper`, `tool`, `framework`, `benchmark`, `dataset`, `company`, `person`
-- Quality: `security`, `privacy`, `reliability`, `alignment`, `cost`, `latency`
-- Meta: `comparison`, `timeline`, `controversy`, `prediction`, `learning-path`
+- 领域：`agent`, `llm`, `rag`, `memory`, `evaluation`, `prompt`, `workflow`, `automation`
+- 技术：`architecture`, `training`, `fine-tuning`, `inference`, `tool-use`, `mcp`, `data`
+- 对象：`model`, `paper`, `tool`, `framework`, `benchmark`, `dataset`, `company`, `person`
+- 质量：`security`, `privacy`, `reliability`, `alignment`, `cost`, `latency`
+- 元信息：`comparison`, `timeline`, `controversy`, `prediction`, `learning-path`
 """,
-        "README.md": """# Knowledge Base
+        "README.md": """# Knowledge Base 知识库
 
-Strict LLM Wiki layout:
+这是一个严格 raw/wiki 架构的 LLM Wiki 知识库。
 
-- `raw/` stores original sources.
-- `wiki/` stores source summaries, concepts, entities, synthesis, outputs, templates, logs, and questions.
-- `scripts/lint.py` is the local health-check entrypoint.
+- `raw/` 保存原始来源。
+- `wiki/` 保存来源摘要、概念、实体、综合分析、输出、模板、日志和问题。
+- `scripts/lint.py` 是本地基础健康检查入口。
 
-Use the llm-wiki-obsidian skill for full ingest, audit, hash scanning, and source dependency workflows.
+完整的整理、审计、哈希扫描和源依赖图工作流，请使用 llm-wiki-obsidian skill。
 """,
     }
 
@@ -201,15 +199,15 @@ def state_files() -> dict[str, Any]:
 
 def format_markdown(report: dict[str, Any]) -> str:
     lines = [
-        "# Knowledge Base Initialized",
+        "# 知识库已初始化",
         "",
-        f"Root: `{report['root']}`",
+        f"根目录：`{report['root']}`",
         "",
-        "## Directories",
+        "## 目录",
         "",
     ]
     lines.extend(f"- `{item}`" for item in report["dirs"])
-    lines.extend(["", "## Files", ""])
+    lines.extend(["", "## 文件", ""])
     lines.extend(f"- `{item}`" for item in report["files"])
     return "\n".join(lines) + "\n"
 

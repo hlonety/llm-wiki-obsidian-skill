@@ -1,7 +1,7 @@
-# Questions
+# Questions 问题队列
 
-## Open
+## Open 未解决
 
-- [ ] What should this knowledge base help answer first?
+- [ ] 这个知识库首先应该帮助回答什么问题？
 
-## Resolved
+## Resolved 已解决
