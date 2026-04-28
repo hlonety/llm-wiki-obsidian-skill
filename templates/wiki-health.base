@@ -1,0 +1,37 @@
+filters:
+  or:
+    - 'confidence == "low"'
+    - 'status == "contested"'
+    - 'domain_volatility == "high"'
+    - 'high_confirmed == false'
+
+formulas:
+  needs_review: 'if(status == "contested" || confidence == "low" || domain_volatility == "high", "review", "")'
+
+properties:
+  file.name:
+    displayName: "页面"
+  type:
+    displayName: "类型"
+  status:
+    displayName: "状态"
+  confidence:
+    displayName: "置信度"
+  domain_volatility:
+    displayName: "波动性"
+  last_reviewed:
+    displayName: "上次复查"
+  formula.needs_review:
+    displayName: "复查"
+
+views:
+  - type: table
+    name: "Wiki 健康检查"
+    order:
+      - file.name
+      - type
+      - status
+      - confidence
+      - domain_volatility
+      - last_reviewed
+      - formula.needs_review

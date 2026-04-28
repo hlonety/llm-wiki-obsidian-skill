@@ -21,6 +21,7 @@ Keep three layers separate:
 
 Read `references/karpathy-method.md` when you need the deeper reasoning behind these rules.
 Read `references/tutorial-coverage.md` when checking parity with the raw/wiki tutorial or explaining what this skill adds beyond it.
+Read `references/obsidian-adapters.md` when creating Obsidian-specific Markdown, Bases, Canvas files, CLI-assisted vault operations, or web captures with Defuddle-style tools.
 
 ## First Action
 
@@ -82,6 +83,7 @@ Map Karpathy's layers like this:
 - Generated state: `wiki/.state/`.
 
 Read `references/obsidian-conventions.md` before initializing or significantly restructuring an Obsidian vault.
+Read `references/obsidian-adapters.md` before creating `.base` dashboards, `.canvas` maps, callout-heavy notes, embeds, or Obsidian CLI workflows.
 
 ## Core Rules
 
@@ -130,6 +132,10 @@ Use the template in `templates/` when creating a page:
 - `workflow.md`, `prompt.md`, `map-of-content.md`: `wiki/synthesis/` reusable processes, prompt patterns, maps, and cross-source analysis.
 - `question.md`: durable answers filed from `wiki/QUESTIONS.md`.
 - `personal-writing.md`: source notes for `raw/personal/` material. These may update "My Position" sections but do not count as external support.
+- `source-queue.base`, `wiki-health.base`: optional Obsidian Bases dashboards for `wiki/outputs/`.
+- `concept-map.canvas`: optional Obsidian Canvas starting point for `wiki/synthesis/` or `wiki/outputs/`.
+
+For Obsidian-specific syntax and optional integrations adapted from kepano/obsidian-skills, use `references/obsidian-adapters.md`.
 
 ## Tool Neutrality
 
@@ -145,7 +151,7 @@ If a tool named in another agent's documentation is unavailable, translate the a
 
 Compatibility target: Claude Code, OpenCode, OpenClaw, Hermes, Codex, Gemini-style agents, and any file-capable agent. The generated vault includes `CLAUDE.md` because the tutorial names that file as the behavior contract; its content must remain portable and not Claude-only. It also generates `AGENTS.md`, `GEMINI.md`, `HERMES.md`, and `OPENCLAW.md` as short redirect files pointing agents back to `CLAUDE.md` and `$llm-wiki-obsidian`.
 
-Do not make Claude Code, qmd, or any other single tool a hard dependency. If qmd-style commands are available, they are optional accelerators; otherwise use normal file reads, search, and scripts. See `references/optional-integrations.md` for adapters.
+Do not make Claude Code, qmd, Obsidian CLI, Defuddle, Bases, Canvas, or any other single tool a hard dependency. If those tools are available, they are optional accelerators; otherwise use normal file reads, search, web extraction, and scripts. See `references/optional-integrations.md` and `references/obsidian-adapters.md` for adapters.
 
 ## Quality Bar
 

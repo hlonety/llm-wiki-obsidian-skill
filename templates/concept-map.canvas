@@ -1,0 +1,96 @@
+{
+  "nodes": [
+    {
+      "id": "1111111111111111",
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 300,
+      "height": 140,
+      "text": "# raw/\\n原始资料，只增不改"
+    },
+    {
+      "id": "2222222222222222",
+      "type": "text",
+      "x": 380,
+      "y": 0,
+      "width": 320,
+      "height": 140,
+      "text": "# wiki/sources/\\n单个来源的摘要、哈希、状态"
+    },
+    {
+      "id": "3333333333333333",
+      "type": "text",
+      "x": 780,
+      "y": -120,
+      "width": 340,
+      "height": 140,
+      "text": "# wiki/concepts/\\n稳定概念和模式"
+    },
+    {
+      "id": "4444444444444444",
+      "type": "text",
+      "x": 780,
+      "y": 120,
+      "width": 340,
+      "height": 140,
+      "text": "# wiki/entities/\\n人物、工具、模型、论文、公司"
+    },
+    {
+      "id": "5555555555555555",
+      "type": "text",
+      "x": 1220,
+      "y": 0,
+      "width": 360,
+      "height": 160,
+      "text": "# wiki/synthesis/\\n跨来源综合、地图、工作流"
+    }
+  ],
+  "edges": [
+    {
+      "id": "aaaaaaaaaaaaaaaa",
+      "fromNode": "1111111111111111",
+      "fromSide": "right",
+      "toNode": "2222222222222222",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "summarize"
+    },
+    {
+      "id": "bbbbbbbbbbbbbbbb",
+      "fromNode": "2222222222222222",
+      "fromSide": "right",
+      "toNode": "3333333333333333",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "extract concepts"
+    },
+    {
+      "id": "cccccccccccccccc",
+      "fromNode": "2222222222222222",
+      "fromSide": "right",
+      "toNode": "4444444444444444",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "extract entities"
+    },
+    {
+      "id": "dddddddddddddddd",
+      "fromNode": "3333333333333333",
+      "fromSide": "right",
+      "toNode": "5555555555555555",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "synthesize"
+    },
+    {
+      "id": "eeeeeeeeeeeeeeee",
+      "fromNode": "4444444444444444",
+      "fromSide": "right",
+      "toNode": "5555555555555555",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "synthesize"
+    }
+  ]
+}

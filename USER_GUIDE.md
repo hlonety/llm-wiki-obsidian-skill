@@ -219,6 +219,33 @@ AI 应该做几件事：
 
 Web Clipper 剪藏进来的内容，默认应该先是 `processed: false`。等 AI 整理完，再改成 `true`。
 
+## Obsidian 增强功能怎么用
+
+这套 skill 可以吸收 Obsidian 的一些专属能力，但它们都是可选增强，不是必需依赖。
+
+- `.base`：可以理解成 Obsidian 里的表格视图。适合做“哪些来源还没处理”“哪些页面需要复查”这类仪表盘。
+- `.canvas`：可以理解成 Obsidian 的白板。适合画概念地图、知识流、学习路线。
+- Obsidian CLI：如果你的电脑装了 `obsidian` 命令，agent 可以用它读取、搜索、修改当前 vault；没有也没关系，普通文件读写一样能工作。
+- Defuddle：如果装了 `defuddle`，agent 可以用它把网页清洗成更干净的 Markdown；没有也可以用浏览器或其他网页读取方式。
+
+可选模板在 skill 仓库的 `templates/` 里：
+
+- `source-queue.base`：来源处理队列。
+- `wiki-health.base`：知识库健康视图。
+- `concept-map.canvas`：概念地图起点。
+
+使用时可以让 agent 把模板复制到你的知识库里，例如：
+
+```text
+使用 $llm-wiki-obsidian，把 source-queue.base 模板放到 wiki/outputs/，帮我做一个待处理来源仪表盘。
+```
+
+或者：
+
+```text
+使用 $llm-wiki-obsidian，基于 concept-map.canvas 在 wiki/synthesis/ 里创建一个我的 Agent 知识地图。
+```
+
 ## 个人写作怎么处理
 
 你自己的文章、分析、投资笔记放在 `raw/personal/`。

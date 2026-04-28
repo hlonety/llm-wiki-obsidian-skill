@@ -24,6 +24,7 @@
 - 计算 raw 文件 SHA-256 哈希值，识别新增、变更、删除文件。
 - 生成源依赖图，知道某个 raw 文件变化后会影响哪些 wiki 页面。
 - 审计断链、重复 URL、近重复概念、未处理来源、索引缺失和高置信度误用。
+- 可选使用 Obsidian 专属能力：Bases 仪表盘、Canvas 知识地图、Obsidian CLI、Defuddle 网页清洗。
 
 ## 安装
 
@@ -105,6 +106,17 @@ python3 scripts/lint_wiki.py ~/wiki/knowledge-base
 ```bash
 python3 scripts/rebuild_index.py ~/wiki/knowledge-base --write
 ```
+
+## Obsidian 增强
+
+本 skill 已把 [kepano/obsidian-skills](https://github.com/kepano/obsidian-skills) 的思路整理成中文适配层，详见 `references/obsidian-adapters.md`。
+
+这些能力都是可选增强，不改变默认 raw/wiki 目录：
+
+- `templates/source-queue.base`：来源处理队列。
+- `templates/wiki-health.base`：低置信度、争议、高波动、待复查页面视图。
+- `templates/concept-map.canvas`：raw -> source -> concept/entity -> synthesis 的知识流画布。
+- Obsidian CLI 和 Defuddle：有就用，没有就回退到普通文件操作和网页读取。
 
 ## 默认目录
 

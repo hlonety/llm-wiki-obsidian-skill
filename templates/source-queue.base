@@ -1,0 +1,34 @@
+filters:
+  and:
+    - 'type == "source"'
+    - or:
+        - 'processed == false'
+        - 'possibly_outdated == true'
+
+properties:
+  file.name:
+    displayName: "来源"
+  source_url:
+    displayName: "URL"
+  raw_file:
+    displayName: "Raw 文件"
+  raw_sha256:
+    displayName: "SHA-256"
+  processed:
+    displayName: "已处理"
+  possibly_outdated:
+    displayName: "可能过期"
+  captured:
+    displayName: "捕获日期"
+
+views:
+  - type: table
+    name: "来源处理队列"
+    order:
+      - file.name
+      - source_url
+      - raw_file
+      - raw_sha256
+      - processed
+      - possibly_outdated
+      - captured

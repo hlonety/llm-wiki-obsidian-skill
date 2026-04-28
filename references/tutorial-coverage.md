@@ -78,3 +78,5 @@ knowledge-base/
 - 个人写作不计入外部证据 `source_count`。
 - 通过 `domain_volatility` 和 `last_reviewed` 做过期检查。
 - 演化日志使用稳定动词：`reinforced`、`corrected`、`contradicted`、`re-ingested`、`personal-position`。
+- Obsidian 适配层：Markdown properties、wikilinks、callouts、embeds、Bases、JSON Canvas、Obsidian CLI、Defuddle 都作为可选增强，详见 `references/obsidian-adapters.md`。
+- 可选 Obsidian 模板：`templates/source-queue.base`、`templates/wiki-health.base`、`templates/concept-map.canvas`。

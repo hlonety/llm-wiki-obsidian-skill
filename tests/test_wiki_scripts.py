@@ -560,5 +560,54 @@ class WikiScriptTests(unittest.TestCase):
         self.assertNotIn('"wiki":', written.read_text(encoding="utf-8"))
 
 
+class SkillDocumentationTests(unittest.TestCase):
+    def test_obsidian_adapter_reference_is_linked_and_attributed(self):
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        optional = (ROOT / "references" / "optional-integrations.md").read_text(encoding="utf-8")
+        adapter_path = ROOT / "references" / "obsidian-adapters.md"
+
+        self.assertIn("references/obsidian-adapters.md", skill)
+        self.assertTrue(adapter_path.is_file())
+
+        adapter = adapter_path.read_text(encoding="utf-8")
+        for required in [
+            "kepano/obsidian-skills",
+            "MIT",
+            "obsidian-markdown",
+            "obsidian-bases",
+            "json-canvas",
+            "obsidian-cli",
+            "defuddle",
+            "raw/wiki",
+        ]:
+            self.assertIn(required, adapter)
+
+        self.assertIn("obsidian", optional)
+        self.assertIn("defuddle", optional)
+
+    def test_optional_obsidian_templates_are_valid_files(self):
+        base_templates = [
+            ROOT / "templates" / "source-queue.base",
+            ROOT / "templates" / "wiki-health.base",
+        ]
+        canvas_template = ROOT / "templates" / "concept-map.canvas"
+
+        for path in base_templates:
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("views:", text)
+            self.assertIn("filters:", text)
+
+        import json
+
+        canvas = json.loads(canvas_template.read_text(encoding="utf-8"))
+        self.assertIn("nodes", canvas)
+        self.assertIn("edges", canvas)
+        node_ids = {node["id"] for node in canvas["nodes"]}
+        self.assertEqual(len(node_ids), len(canvas["nodes"]))
+        for edge in canvas["edges"]:
+            self.assertIn(edge["fromNode"], node_ids)
+            self.assertIn(edge["toNode"], node_ids)
+
+
 if __name__ == "__main__":
     unittest.main()
