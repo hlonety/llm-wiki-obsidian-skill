@@ -237,6 +237,29 @@ class WikiScriptTests(unittest.TestCase):
         self.assertIn("- [[codex]] - Codex is an agent tool", index)
         self.assertIn("Total pages: 3", index)
 
+    def test_scan_sources_detects_new_changed_and_deleted_files(self):
+        scan_sources = load_module("scan_sources", ROOT / "scripts" / "scan_sources.py")
+        source = self.wiki / "raw" / "articles" / "new-agent-note.md"
+        source.write_text("# New Agent Note\n\nFirst version.\n", encoding="utf-8")
+
+        first_report = scan_sources.scan_sources(self.wiki)
+        self.assertEqual(first_report["summary"]["new"], 1)
+        self.assertEqual(first_report["files"][0]["status"], "new")
+        self.assertEqual(first_report["files"][0]["path"], "raw/articles/new-agent-note.md")
+        self.assertEqual(len(first_report["files"][0]["sha256"]), 64)
+
+        scan_sources.write_manifest(self.wiki, first_report["manifest"])
+        source.write_text("# New Agent Note\n\nSecond version.\n", encoding="utf-8")
+        changed_report = scan_sources.scan_sources(self.wiki)
+        changed = [item for item in changed_report["files"] if item["path"] == "raw/articles/new-agent-note.md"][0]
+        self.assertEqual(changed["status"], "changed")
+
+        scan_sources.write_manifest(self.wiki, changed_report["manifest"])
+        source.unlink()
+        deleted_report = scan_sources.scan_sources(self.wiki)
+        deleted = [item for item in deleted_report["files"] if item["path"] == "raw/articles/new-agent-note.md"][0]
+        self.assertEqual(deleted["status"], "deleted")
+
 
 if __name__ == "__main__":
     unittest.main()

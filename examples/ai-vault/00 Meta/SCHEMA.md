@@ -14,6 +14,7 @@ AI, LLMs, agents, prompts, tools, papers, workflows, evaluation, RAG, MCP, autom
 - Update `00 Meta/index.md` and `00 Meta/log.md` after non-trivial changes.
 - Store durable answers and reports in `95 Outputs/`.
 - Keep open questions in `00 Meta/questions.md`.
+- Use `00 Meta/source-manifest.json` to track SHA-256 hashes for raw source files.
 - Personal writing may update positions but does not count as external source support.
 
 ## Tag Taxonomy

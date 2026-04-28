@@ -22,17 +22,35 @@
 ## Ingest a Source
 
 1. Capture the raw source under `10 Sources/`.
-2. Add source metadata: URL/path, author if known, captured date, hash when practical.
-3. Extract candidate concepts, tools, people, papers, prompts, workflows, and claims.
-4. Search existing pages before creating new ones.
-5. Update pages that already cover the topic.
-6. Create new pages only when the source is central to the topic or the topic appears across multiple sources.
-7. Add sources and evidence to frontmatter or a Sources section.
-8. If the source is personal writing, update `## My Position` sections but do not increment external `source_count`.
-9. Add wikilinks in both directions when useful.
-10. Check `00 Meta/questions.md` for questions the source might answer.
-11. Update index and log.
-12. Report created and modified files.
+2. Run `scripts/scan_sources.py <vault> --write` when available to compute hashes and detect new or changed files.
+3. Add source metadata: URL/path, author if known, captured date, hash when practical.
+4. If using `00 Meta/source-manifest.json`, copy the source file's SHA-256 into the related source note when creating one.
+5. Extract candidate concepts, tools, people, papers, prompts, workflows, and claims.
+6. Search existing pages before creating new ones.
+7. Update pages that already cover the topic.
+8. Create new pages only when the source is central to the topic or the topic appears across multiple sources.
+9. Add sources and evidence to frontmatter or a Sources section.
+10. If the source is personal writing, update `## My Position` sections but do not increment external `source_count`.
+11. Add wikilinks in both directions when useful.
+12. Check `00 Meta/questions.md` for questions the source might answer.
+13. Update index and log.
+14. Report created and modified files.
+
+## Scan Sources
+
+Use when the user asks whether there are new files, changed files, or raw files that need ingesting.
+
+1. Run:
+   ```bash
+   python3 scripts/scan_sources.py /path/to/vault
+   ```
+2. Review files marked `new`, `changed`, or `deleted`.
+3. If the report looks correct, run:
+   ```bash
+   python3 scripts/scan_sources.py /path/to/vault --write
+   ```
+4. Ingest `new` and `changed` files.
+5. Treat `deleted` files as a warning. Do not remove wiki pages automatically; ask the user what happened.
 
 ## Query the Wiki
 

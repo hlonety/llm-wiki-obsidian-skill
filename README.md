@@ -13,6 +13,7 @@ This skill teaches an agent to maintain a compounding Markdown wiki:
 - Keep Obsidian wikilinks and frontmatter clean.
 - Track sources, confidence, stale claims, and contradictions.
 - Keep open questions, durable outputs, and personal writing separate from external evidence.
+- Compute SHA-256 hashes for raw source files and detect new, changed, or deleted files.
 - Audit broken links, missing index entries, orphan pages, and drift.
 
 ## Install
@@ -73,6 +74,13 @@ Audit the vault:
 python3 scripts/lint_wiki.py ~/wiki/ai
 ```
 
+Scan raw sources and update the hash manifest:
+
+```bash
+python3 scripts/scan_sources.py ~/wiki/ai
+python3 scripts/scan_sources.py ~/wiki/ai --write
+```
+
 Rebuild the index:
 
 ```bash
@@ -98,7 +106,7 @@ assets/
 _archive/
 ```
 
-`00 Meta/` should include `SCHEMA.md`, `index.md`, `log.md`, `overview.md`, and `questions.md`.
+`00 Meta/` should include `SCHEMA.md`, `index.md`, `log.md`, `overview.md`, `questions.md`, and the generated `source-manifest.json`.
 
 ## v0.2 Knowledge Rules
 
@@ -106,6 +114,7 @@ _archive/
 - Personal writing records the user's position but does not count toward external `source_count`.
 - Fast-moving pages use `domain_volatility` and `last_reviewed` so stale claims can be audited.
 - Durable query results, reflection reports, comparison tables, and slide outlines go in `95 Outputs/`.
+- `scan_sources.py` maintains `00 Meta/source-manifest.json` and reports `new`, `changed`, `deleted`, and `unchanged` source files.
 - `REFLECT`, `MERGE`, and `ADD-QUESTION` operations are documented in `references/operations.md`.
 
 ## Source

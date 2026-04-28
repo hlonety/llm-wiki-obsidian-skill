@@ -45,6 +45,7 @@ vault/
     log.md
     overview.md
     questions.md
+    source-manifest.json
     topic-map.md
   10 Sources/
     articles/
@@ -93,6 +94,7 @@ Read `references/workflows.md` for exact steps. Use this quick map:
 
 - Initialize: create the layout, write `SCHEMA.md`, seed `index.md`, seed `log.md`, suggest first sources.
 - Ingest: preserve source, extract entities and concepts, search existing wiki, update synthesis pages, update navigation.
+- Scan sources: compute SHA-256 for files under `10 Sources/` and `raw/`, update `00 Meta/source-manifest.json`, then ingest files marked `new` or `changed`.
 - Query: read index, search pages, synthesize from wiki pages, cite page links and source notes, optionally file durable answers.
 - Audit: check broken links, orphan pages, index drift, missing frontmatter, unknown tags, stale pages, source drift, and contested claims.
 - Refactor: merge duplicate pages, split oversized pages, archive superseded pages, update inbound links.
@@ -144,6 +146,8 @@ Good LLM Wiki work should leave the vault easier to navigate than before:
 Use scripts in `scripts/` when available:
 
 ```bash
+python3 scripts/scan_sources.py /path/to/vault
+python3 scripts/scan_sources.py /path/to/vault --write
 python3 scripts/lint_wiki.py /path/to/vault
 python3 scripts/rebuild_index.py /path/to/vault --write
 ```
