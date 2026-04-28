@@ -16,7 +16,23 @@ from urllib.parse import urlsplit, urlunsplit
 
 WIKILINK_RE = re.compile(r"!\[\[[^\]]+\]\]|\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]")
 REQUIRED_FRONTMATTER = {"title", "created", "updated", "type", "tags", "sources"}
-META_FILENAMES = {"schema.md", "index.md", "log.md", "topic-map.md", "overview.md", "questions.md", "readme.md"}
+RULES_CANDIDATES = ["CLAUDE.md", "AGENTS.md", "GEMINI.md", "wiki/SCHEMA.md", "00 Meta/SCHEMA.md", "SCHEMA.md"]
+INDEX_CANDIDATES = ["wiki/index.md", "00 Meta/index.md", "index.md"]
+SOURCE_ROOTS = ["wiki/sources", "10 Sources", "raw"]
+META_FILENAMES = {
+    "agents.md",
+    "bootstrap_prompt.md",
+    "claude.md",
+    "gemini.md",
+    "schema.md",
+    "index.md",
+    "log.md",
+    "topic-map.md",
+    "overview.md",
+    "questions.md",
+    "readme.md",
+    "upgrade_prompt.md",
+}
 IGNORED_DIRS = {".git", "assets", "_archive", "templates", "references", "scripts", "tests"}
 VOLATILITY_DAYS = {"high": 90, "medium": 180, "low": 365}
 STUB_BODY_WORDS = 80
@@ -105,7 +121,7 @@ def iter_markdown_files(wiki: Path) -> list[Path]:
     files: list[Path] = []
     for path in wiki.rglob("*.md"):
         rel_parts = path.relative_to(wiki).parts
-        if any(part in IGNORED_DIRS for part in rel_parts):
+        if any(part in IGNORED_DIRS or part.startswith(".") for part in rel_parts):
             continue
         files.append(path)
     return sorted(files)
@@ -115,7 +131,10 @@ def is_wiki_page(wiki: Path, path: Path) -> bool:
     rel = path.relative_to(wiki)
     if rel.name.lower() in META_FILENAMES:
         return False
-    if rel.parts and rel.parts[0].lower() in {"10 sources", "raw"}:
+    rel_text = rel.as_posix()
+    if is_under_any(rel_text, SOURCE_ROOTS):
+        return False
+    if rel.parts[:2] in {("wiki", "templates"), ("wiki", ".state")}:
         return False
     return True
 
@@ -150,7 +169,7 @@ def extract_wikilink_targets(text: str) -> list[tuple[str, str]]:
 
 
 def parse_schema_tags(wiki: Path) -> set[str]:
-    schema = first_existing(wiki, ["00 Meta/SCHEMA.md", "SCHEMA.md"])
+    schema = first_existing(wiki, RULES_CANDIDATES)
     if not schema:
         return set()
     text = schema.read_text(encoding="utf-8")
@@ -178,7 +197,7 @@ def first_existing(wiki: Path, candidates: list[str]) -> Path | None:
 
 
 def index_text(wiki: Path) -> str:
-    path = first_existing(wiki, ["00 Meta/index.md", "index.md"])
+    path = first_existing(wiki, INDEX_CANDIDATES)
     if not path:
         return ""
     return path.read_text(encoding="utf-8")
@@ -190,11 +209,11 @@ def lint_wiki(wiki_path: str | Path) -> dict[str, Any]:
     if not wiki.exists():
         return {"wiki": str(wiki), "summary": {"pages": 0, "issues": 1}, "issues": [{"code": "missing-vault", "path": str(wiki)}]}
 
-    for required in ["00 Meta/SCHEMA.md", "SCHEMA.md"]:
+    for required in RULES_CANDIDATES:
         if (wiki / required).exists():
             break
     else:
-        issues.append({"code": "missing-schema", "severity": "high", "path": "00 Meta/SCHEMA.md"})
+        issues.append({"code": "missing-schema", "severity": "high", "path": "CLAUDE.md"})
 
     md_files = iter_markdown_files(wiki)
     wiki_pages = [path for path in md_files if is_wiki_page(wiki, path)]
@@ -392,7 +411,7 @@ def jaccard(left: set[str], right: set[str]) -> float:
 def check_source_notes(wiki: Path) -> list[dict[str, Any]]:
     issues: list[dict[str, Any]] = []
     source_urls: dict[str, tuple[str, str]] = {}
-    for source_root in ["10 Sources", "raw"]:
+    for source_root in SOURCE_ROOTS:
         root = wiki / source_root
         if not root.exists():
             continue
@@ -451,12 +470,12 @@ def normalize_source_url(value: Any) -> str:
 
 def is_personal_source(source: str) -> bool:
     source = source.lower().replace("\\", "/")
-    return "raw/personal/" in source or "10 sources/personal/" in source or "personal-writing" in source
+    return "raw/personal/" in source or "10 sources/personal/" in source or "wiki/sources/personal/" in source or "personal-writing" in source
 
 
 def check_raw_hashes(wiki: Path) -> list[dict[str, Any]]:
     issues: list[dict[str, Any]] = []
-    for source_root in ["10 Sources", "raw"]:
+    for source_root in SOURCE_ROOTS:
         root = wiki / source_root
         if not root.exists():
             continue
@@ -478,6 +497,15 @@ def check_raw_hashes(wiki: Path) -> list[dict[str, Any]]:
                     }
                 )
     return issues
+
+
+def is_under_any(rel: str, roots: list[str]) -> bool:
+    lower = rel.lower()
+    for root in roots:
+        root_lower = root.lower()
+        if lower == root_lower or lower.startswith(f"{root_lower}/"):
+            return True
+    return False
 
 
 def format_markdown(report: dict[str, Any]) -> str:

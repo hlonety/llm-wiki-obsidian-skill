@@ -1,6 +1,6 @@
 # LLM Wiki Obsidian Skill
 
-A portable agent skill for maintaining an Obsidian-first LLM Wiki based on Andrej Karpathy's LLM Wiki pattern.
+A portable agent skill for maintaining a strict `raw/` + `wiki/` LLM Wiki based on Andrej Karpathy's LLM Wiki pattern.
 
 It is designed for AI knowledge bases: LLMs, agents, prompts, tools, papers, workflows, evaluation, RAG, MCP, automation, and learning notes.
 
@@ -9,7 +9,7 @@ It is designed for AI knowledge bases: LLMs, agents, prompts, tools, papers, wor
 This skill teaches an agent to maintain a compounding Markdown wiki:
 
 - Preserve raw sources.
-- Compile durable concept, tool, paper, prompt, workflow, and question pages.
+- Compile durable source summaries, concepts, entities, synthesis pages, outputs, and questions.
 - Keep Obsidian wikilinks and frontmatter clean.
 - Track sources, confidence, stale claims, and contradictions.
 - Keep open questions, durable outputs, and personal writing separate from external evidence.
@@ -55,7 +55,13 @@ The instructions are tool-neutral. When a platform has different tool names for 
 Create an AI knowledge vault:
 
 ```text
-Use llm-wiki-obsidian to create an Obsidian vault for my AI knowledge base at ~/wiki/ai.
+Use llm-wiki-obsidian to create a strict knowledge-base for my AI knowledge at ~/wiki/knowledge-base.
+```
+
+Or run the scaffold script directly:
+
+```bash
+python3 scripts/init_knowledge_base.py ~/wiki/knowledge-base
 ```
 
 Ingest a source:
@@ -73,57 +79,71 @@ Based on my LLM Wiki, explain the difference between RAG memory and compiled wik
 Audit the vault:
 
 ```bash
-python3 scripts/lint_wiki.py ~/wiki/ai
+python3 scripts/lint_wiki.py ~/wiki/knowledge-base
 ```
 
 Scan raw sources and update the hash manifest:
 
 ```bash
-python3 scripts/scan_sources.py ~/wiki/ai
-python3 scripts/scan_sources.py ~/wiki/ai --write
+python3 scripts/scan_sources.py ~/wiki/knowledge-base
+python3 scripts/scan_sources.py ~/wiki/knowledge-base --write
 ```
 
 Build the source dependency map:
 
 ```bash
-python3 scripts/build_source_dependencies.py ~/wiki/ai --write
+python3 scripts/build_source_dependencies.py ~/wiki/knowledge-base --write
 ```
 
 Rebuild the index:
 
 ```bash
-python3 scripts/rebuild_index.py ~/wiki/ai --write
+python3 scripts/rebuild_index.py ~/wiki/knowledge-base --write
 ```
 
-## Recommended Obsidian Layout
+## Strict Knowledge-Base Layout
 
 ```text
-00 Meta/
-10 Sources/
-10 Sources/personal/
-20 Concepts/
-30 Tools/
-40 People/
-50 Papers/
-60 Workflows/
-70 Prompts/
-80 Questions/
-90 Maps/
-95 Outputs/
-assets/
-_archive/
+knowledge-base/
+  raw/
+    articles/
+    clippings/
+    images/
+    pdfs/
+    notes/
+    personal/
+  wiki/
+    index.md
+    log.md
+    overview.md
+    QUESTIONS.md
+    sources/
+    concepts/
+    entities/
+    synthesis/
+    outputs/
+    templates/
+    .state/
+      source-manifest.json
+      source-dependencies.json
+  scripts/
+    lint.py
+  BOOTSTRAP_PROMPT.md
+  UPGRADE_PROMPT.md
+  CLAUDE.md
+  README.md
 ```
 
-`00 Meta/` should include `SCHEMA.md`, `index.md`, `log.md`, `overview.md`, `questions.md`, and the generated `source-manifest.json` and `source-dependencies.json`.
+`CLAUDE.md` is the tutorial-compatible behavior contract. It is not Claude-only; other agents should read it as a normal Markdown rules file.
 
 ## Knowledge Rules
 
 - `confidence: high` is never automatic. It requires explicit user confirmation.
 - Personal writing records the user's position but does not count toward external `source_count`.
 - Fast-moving pages use `domain_volatility` and `last_reviewed` so stale claims can be audited.
-- Durable query results, reflection reports, comparison tables, and slide outlines go in `95 Outputs/`.
-- `scan_sources.py` maintains `00 Meta/source-manifest.json` and reports `new`, `changed`, `deleted`, and `unchanged` source files.
-- `build_source_dependencies.py` maintains `00 Meta/source-dependencies.json` for raw-file, source-note, and wiki-page impact tracking.
+- Durable query results, reflection reports, comparison tables, and slide outlines go in `wiki/outputs/`.
+- `scan_sources.py` maintains `wiki/.state/source-manifest.json` and reports `new`, `changed`, `deleted`, and `unchanged` source files.
+- `build_source_dependencies.py` maintains `wiki/.state/source-dependencies.json` for raw-file, source-note, and wiki-page impact tracking.
 - Web Clipper or browser-saved notes should enter as `processed: false` source notes and be batch-ingested later.
 - Use English lowercase kebab-case slugs; put Chinese names and alternate terms in titles and aliases.
 - `REFLECT`, `MERGE`, and `ADD-QUESTION` operations are documented in `references/operations.md`.

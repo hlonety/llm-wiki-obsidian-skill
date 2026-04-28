@@ -9,18 +9,35 @@ from pathlib import Path
 from typing import Any
 
 
-META_FILENAMES = {"schema.md", "index.md", "log.md", "topic-map.md", "overview.md", "questions.md", "readme.md"}
+META_FILENAMES = {
+    "agents.md",
+    "bootstrap_prompt.md",
+    "claude.md",
+    "gemini.md",
+    "schema.md",
+    "index.md",
+    "log.md",
+    "topic-map.md",
+    "overview.md",
+    "questions.md",
+    "readme.md",
+    "upgrade_prompt.md",
+}
 IGNORED_DIRS = {".git", "assets", "_archive", "templates", "references", "scripts", "tests"}
-TYPE_ORDER = ["concept", "tool", "paper", "person", "workflow", "prompt", "question", "map"]
+SOURCE_ROOTS = {"10 sources", "raw", "wiki/sources"}
+TYPE_ORDER = ["concept", "entity", "tool", "paper", "person", "workflow", "prompt", "question", "synthesis", "map", "output"]
 TYPE_LABELS = {
     "concept": "Concepts",
+    "entity": "Entities",
     "tool": "Tools",
     "paper": "Papers",
     "person": "People",
     "workflow": "Workflows",
     "prompt": "Prompts",
     "question": "Questions",
+    "synthesis": "Synthesis",
     "map": "Maps",
+    "output": "Outputs",
 }
 
 
@@ -63,11 +80,14 @@ def iter_pages(wiki: Path) -> list[Path]:
     for path in wiki.rglob("*.md"):
         rel = path.relative_to(wiki)
         lower_parts = {part.lower() for part in rel.parts}
-        if lower_parts & IGNORED_DIRS:
+        if lower_parts & IGNORED_DIRS or any(part.startswith(".") for part in lower_parts):
             continue
         if rel.name.lower() in META_FILENAMES:
             continue
-        if rel.parts and rel.parts[0].lower() in {"10 sources", "raw"}:
+        rel_text = rel.as_posix().lower()
+        if any(rel_text == root or rel_text.startswith(f"{root}/") for root in SOURCE_ROOTS):
+            continue
+        if rel.parts[:2] in {("wiki", "templates"), ("wiki", ".state")}:
             continue
         files.append(path)
     return sorted(files)
@@ -110,6 +130,9 @@ def infer_type(path: Path) -> str:
     mapping = {
         "20 concepts": "concept",
         "concepts": "concept",
+        "wiki/concepts": "concept",
+        "entities": "entity",
+        "wiki/entities": "entity",
         "30 tools": "tool",
         "tools": "tool",
         "40 people": "person",
@@ -124,8 +147,13 @@ def infer_type(path: Path) -> str:
         "queries": "question",
         "90 maps": "map",
         "maps": "map",
+        "synthesis": "synthesis",
+        "wiki/synthesis": "synthesis",
+        "outputs": "output",
+        "wiki/outputs": "output",
     }
-    return mapping.get(folder, "concept")
+    rel_parent = path.parent.as_posix().lower()
+    return mapping.get(rel_parent) or mapping.get(folder, "concept")
 
 
 def build_index(wiki_path: str | Path, title: str = "LLM Wiki Index") -> str:
@@ -157,6 +185,9 @@ def build_index(wiki_path: str | Path, title: str = "LLM Wiki Index") -> str:
 
 
 def index_path(wiki: Path) -> Path:
+    strict = wiki / "wiki"
+    if strict.exists():
+        return strict / "index.md"
     meta = wiki / "00 Meta"
     return meta / "index.md" if meta.exists() else wiki / "index.md"
 

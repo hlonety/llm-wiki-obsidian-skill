@@ -35,8 +35,7 @@ Keep those files short. They should name the vault path and tell the agent to fo
 
 Use Web Clipper as an intake tool:
 
-1. Clip into `10 Sources/clips/`.
-2. Use `templates/web-clipper-source.md`.
+1. Save raw captures into `raw/clippings/`.
+2. Create source notes in `wiki/sources/` with `templates/web-clipper-source.md`.
 3. Leave `processed: false`.
 4. Later, batch ingest the queue and set `processed: true` only after wiki pages are updated.
-

@@ -12,8 +12,21 @@ from typing import Any
 
 
 WIKILINK_RE = re.compile(r"!\[\[[^\]]+\]\]|\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]")
-SOURCE_ROOTS = ["10 Sources", "raw"]
-META_FILENAMES = {"schema.md", "index.md", "log.md", "topic-map.md", "overview.md", "questions.md", "readme.md"}
+SOURCE_ROOTS = ["wiki/sources", "10 Sources", "raw"]
+META_FILENAMES = {
+    "bootstrap_prompt.md",
+    "claude.md",
+    "gemini.md",
+    "agents.md",
+    "schema.md",
+    "index.md",
+    "log.md",
+    "topic-map.md",
+    "overview.md",
+    "questions.md",
+    "readme.md",
+    "upgrade_prompt.md",
+}
 IGNORED_DIRS = {".git", "assets", "_archive", "templates", "references", "scripts", "tests"}
 
 
@@ -67,6 +80,10 @@ def as_list(value: Any) -> list[Any]:
 
 
 def dependencies_path(wiki: Path) -> Path:
+    wiki = wiki.expanduser().resolve()
+    strict_state = wiki / "wiki" / ".state"
+    if (wiki / "wiki").exists():
+        return strict_state / "source-dependencies.json"
     meta = wiki / "00 Meta"
     return meta / "source-dependencies.json" if meta.exists() else wiki / "source-dependencies.json"
 
@@ -75,22 +92,25 @@ def iter_markdown_files(wiki: Path) -> list[Path]:
     files: list[Path] = []
     for path in wiki.rglob("*.md"):
         rel_parts = path.relative_to(wiki).parts
-        if any(part in IGNORED_DIRS for part in rel_parts):
+        if any(part in IGNORED_DIRS or part.startswith(".") for part in rel_parts):
             continue
         files.append(path)
     return sorted(files)
 
 
 def is_source_note(wiki: Path, path: Path) -> bool:
-    parts = path.relative_to(wiki).parts
-    return bool(parts and parts[0] in SOURCE_ROOTS)
+    rel = path.relative_to(wiki).as_posix()
+    return any(rel == root or rel.startswith(f"{root}/") for root in SOURCE_ROOTS)
 
 
 def is_wiki_page(wiki: Path, path: Path) -> bool:
     rel = path.relative_to(wiki)
     if rel.name.lower() in META_FILENAMES:
         return False
-    if rel.parts and rel.parts[0] in SOURCE_ROOTS:
+    rel_text = rel.as_posix()
+    if any(rel_text == root or rel_text.startswith(f"{root}/") for root in SOURCE_ROOTS):
+        return False
+    if rel.parts[:2] in {("wiki", "templates"), ("wiki", ".state")}:
         return False
     return True
 
@@ -242,7 +262,7 @@ def format_markdown(report: dict[str, Any]) -> str:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build source-to-page dependencies for an LLM Wiki vault.")
     parser.add_argument("wiki", help="Path to the wiki or Obsidian vault")
-    parser.add_argument("--write", action="store_true", help="Write 00 Meta/source-dependencies.json")
+    parser.add_argument("--write", action="store_true", help="Write wiki/.state/source-dependencies.json")
     parser.add_argument("--json", action="store_true", help="Print JSON instead of Markdown")
     args = parser.parse_args(argv)
 

@@ -112,6 +112,160 @@ class WikiScriptTests(unittest.TestCase):
         self.assertEqual({issue["page"] for issue in missing}, {"prompt-architecture", "codex"})
         self.assertEqual(report["summary"]["pages"], 3)
 
+    def test_init_knowledge_base_creates_strict_tutorial_layout(self):
+        init_knowledge_base = load_module("init_knowledge_base", ROOT / "scripts" / "init_knowledge_base.py")
+        target = self.wiki / "knowledge-base"
+
+        created = init_knowledge_base.init_knowledge_base(target)
+
+        expected_dirs = {
+            "raw",
+            "raw/articles",
+            "raw/clippings",
+            "raw/images",
+            "raw/pdfs",
+            "raw/notes",
+            "raw/personal",
+            "wiki",
+            "wiki/sources",
+            "wiki/concepts",
+            "wiki/entities",
+            "wiki/synthesis",
+            "wiki/outputs",
+            "wiki/templates",
+            "scripts",
+        }
+        expected_files = {
+            "wiki/index.md",
+            "wiki/log.md",
+            "wiki/overview.md",
+            "wiki/QUESTIONS.md",
+            "scripts/lint.py",
+            "BOOTSTRAP_PROMPT.md",
+            "UPGRADE_PROMPT.md",
+            "CLAUDE.md",
+            "README.md",
+        }
+
+        self.assertTrue(expected_dirs.issubset(set(created["dirs"])))
+        self.assertTrue(expected_files.issubset(set(created["files"])))
+        for rel in expected_dirs:
+            self.assertTrue((target / rel).is_dir(), rel)
+        for rel in expected_files:
+            self.assertTrue((target / rel).is_file(), rel)
+        self.assertIn("raw/", (target / "CLAUDE.md").read_text(encoding="utf-8"))
+        self.assertIn("wiki/", (target / "CLAUDE.md").read_text(encoding="utf-8"))
+
+    def test_strict_layout_paths_are_first_class(self):
+        lint_wiki = load_module("lint_wiki", ROOT / "scripts" / "lint_wiki.py")
+        scan_sources = load_module("scan_sources", ROOT / "scripts" / "scan_sources.py")
+        build_source_dependencies = load_module("build_source_dependencies", ROOT / "scripts" / "build_source_dependencies.py")
+        rebuild_index = load_module("rebuild_index", ROOT / "scripts" / "rebuild_index.py")
+        kb = self.wiki / "knowledge-base"
+        for rel in [
+            "raw/articles",
+            "wiki/sources",
+            "wiki/concepts",
+            "wiki/entities",
+            "wiki/synthesis",
+            "wiki/outputs",
+            "wiki/templates",
+        ]:
+            (kb / rel).mkdir(parents=True, exist_ok=True)
+        (kb / "CLAUDE.md").write_text(
+            textwrap.dedent(
+                """
+                # LLM Behavior Contract
+
+                ## Tag Taxonomy
+                - Areas: `agent`, `llm`, `memory`, `workflow`
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        (kb / "wiki" / "index.md").write_text(
+            "# Index\n\n## Concepts\n- [[llm-wiki]] - Compiled wiki memory.\n",
+            encoding="utf-8",
+        )
+        (kb / "wiki" / "log.md").write_text("# Log\n", encoding="utf-8")
+        (kb / "wiki" / "overview.md").write_text("# Overview\n", encoding="utf-8")
+        (kb / "wiki" / "QUESTIONS.md").write_text("# Questions\n", encoding="utf-8")
+        (kb / "raw" / "articles" / "karpathy.md").write_text("# Karpathy\n\nCompiled wiki memory.\n", encoding="utf-8")
+        (kb / "wiki" / "sources" / "karpathy-llm-wiki.md").write_text(
+            textwrap.dedent(
+                """
+                ---
+                title: Karpathy LLM Wiki
+                source_url: https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f
+                captured: 2026-04-28
+                type: source
+                processed: true
+                raw_file: raw/articles/karpathy.md
+                raw_sha256: rawhash
+                tags: []
+                ---
+
+                This source supports [[llm-wiki]].
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        (kb / "wiki" / "concepts" / "llm-wiki.md").write_text(
+            textwrap.dedent(
+                """
+                ---
+                title: LLM Wiki
+                aliases: [compiled wiki memory]
+                created: 2026-04-28
+                updated: 2026-04-28
+                type: concept
+                status: growing
+                tags: [llm, memory, workflow]
+                sources: [wiki/sources/karpathy-llm-wiki.md]
+                source_count: 1
+                confidence: low
+                domain_volatility: medium
+                last_reviewed: 2026-04-28
+                high_confirmed: false
+                ---
+
+                LLM Wiki keeps raw sources separate from synthesized wiki pages. The compiled wiki layer
+                is updated over time, which makes future answers cheaper, more consistent, and easier to audit.
+                It preserves source traceability, open questions, confidence notes, and evolution logs so agents
+                can continue the work without rediscovering everything from scratch.
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+
+        scan_report = scan_sources.scan_sources(kb)
+        self.assertEqual(scan_report["manifest_path"], str((kb / "wiki" / ".state" / "source-manifest.json").resolve()))
+        self.assertEqual(scan_report["manifest"]["roots"], ["raw"])
+        self.assertEqual(scan_report["files"][0]["path"], "raw/articles/karpathy.md")
+
+        deps_report = build_source_dependencies.build_source_dependencies(kb)
+        deps = deps_report["dependencies"]
+        self.assertEqual(
+            build_source_dependencies.dependencies_path(kb),
+            (kb / "wiki" / ".state" / "source-dependencies.json").resolve(),
+        )
+        self.assertIn("wiki/sources/karpathy-llm-wiki.md", deps)
+        self.assertIn("raw/articles/karpathy.md", deps)
+        self.assertIn("wiki/concepts/llm-wiki.md", deps["wiki/sources/karpathy-llm-wiki.md"]["wiki_pages"])
+        self.assertIn("wiki/concepts/llm-wiki.md", deps["raw/articles/karpathy.md"]["wiki_pages"])
+
+        lint_report = lint_wiki.lint_wiki(kb)
+        codes = {issue["code"] for issue in lint_report["issues"]}
+        self.assertNotIn("missing-schema", codes)
+        self.assertEqual(lint_report["summary"]["pages"], 1)
+
+        rebuilt_index = rebuild_index.build_index(kb, title="LLM Wiki Index")
+        self.assertIn("- [[llm-wiki]]", rebuilt_index)
+        self.assertNotIn("[[karpathy-llm-wiki]]", rebuilt_index)
+
     def test_lint_reports_v02_knowledge_quality_issues(self):
         lint_wiki = load_module("lint_wiki", ROOT / "scripts" / "lint_wiki.py")
         (self.wiki / "concepts" / "old-model.md").write_text(

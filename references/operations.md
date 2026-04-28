@@ -9,7 +9,7 @@ Use when the user says they want to understand something, record a question, or 
 Steps:
 
 1. Normalize the question into one clear sentence.
-2. Append it to `00 Meta/questions.md`:
+2. Append it to `wiki/QUESTIONS.md`:
    ```markdown
    - [ ] Question text (opened YYYY-MM-DD)
    ```
@@ -26,9 +26,9 @@ Stages:
 
 1. Counter-evidence first: before writing a synthesis, search existing sources and pages for disagreement. If none is found, add a limitation note that the synthesis may have echo-chamber risk.
 2. Pattern scan: search concepts, tools, people, papers, workflows, prompts, and prior question outputs for repeated themes, contradictions, underlinked pages, and gaps.
-3. Deep synthesis: write a durable page under `80 Questions/`, `90 Maps/`, or `95 Outputs/` only when the result would be painful to recreate.
+3. Deep synthesis: write a durable page under `wiki/synthesis/` or `wiki/outputs/` only when the result would be painful to recreate.
 4. Gap report: list concepts with one source, open questions with no sources, stale high-volatility pages, and important topics with thin coverage.
-5. Update `00 Meta/overview.md`, `00 Meta/index.md`, and `00 Meta/log.md`.
+5. Update `wiki/overview.md`, `wiki/index.md`, and `wiki/log.md`.
 
 Do not manufacture certainty. A useful reflect pass often produces open questions and limitations.
 
@@ -44,14 +44,14 @@ Rules:
 - Merge source lists without duplicate entries.
 - Preserve personal positions in a dedicated section.
 - Update inbound wikilinks.
-- Move superseded pages to `_archive/` or replace them with a small redirect note if the user's vault convention supports redirects.
+- Move superseded pages to `wiki/outputs/archive/`, mark them `status: archived`, or replace them with a small redirect note if the user's vault convention supports redirects.
 - Log the merge.
 
 For cross-language duplicates, keep the English slug and put Chinese names in `aliases` and in the visible title where useful.
 
 ## QUERY OUTPUTS
 
-If an answer is durable, save it. Use `95 Outputs/` for:
+If an answer is durable, save it. Use `wiki/outputs/` for:
 
 - deep answers,
 - comparison tables,

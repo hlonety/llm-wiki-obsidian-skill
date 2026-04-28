@@ -1,13 +1,13 @@
 ---
 name: llm-wiki-obsidian
-description: Use when creating, maintaining, querying, or auditing a persistent Markdown or Obsidian knowledge base based on Karpathy's LLM Wiki pattern, especially for AI, LLM, agent, prompt, research, paper, tool, workflow, or learning notes.
+description: Use when creating, maintaining, querying, or auditing a persistent Markdown or Obsidian knowledge base based on Karpathy's LLM Wiki pattern, especially strict raw/wiki knowledge-base layouts for AI, LLM, agent, prompt, research, paper, tool, workflow, or learning notes.
 ---
 
 # LLM Wiki Obsidian
 
-Use this skill to maintain a compounding Markdown knowledge base where raw sources stay preserved, wiki pages improve over time, and the schema tells future agents how to continue the work.
+Use this skill to maintain a compounding Markdown knowledge base where raw sources stay preserved, wiki pages improve over time, and a behavior contract tells future agents how to continue the work.
 
-The default target is an Obsidian vault for AI knowledge, but the method is portable to any file-based Markdown system.
+The default target is the strict `knowledge-base/raw/wiki` structure from the LLM Wiki tutorial, with additional source hashing, dependency mapping, audit, confidence, and Obsidian-friendly conventions.
 
 ## Source Principle
 
@@ -17,68 +17,72 @@ Keep three layers separate:
 
 1. Raw sources: immutable evidence and clippings.
 2. Wiki pages: agent-maintained synthesis, links, comparisons, and answers.
-3. Schema: local rules for structure, tags, page thresholds, and update policy.
+3. Behavior contract: local rules for structure, tags, page thresholds, and update policy.
 
 Read `references/karpathy-method.md` when you need the deeper reasoning behind these rules.
+Read `references/tutorial-coverage.md` when checking parity with the raw/wiki tutorial or explaining what this skill adds beyond it.
 
 ## First Action
 
 When a user mentions an existing wiki, Obsidian vault, AI knowledge base, notes folder, or LLM wiki:
 
 1. Locate the vault. Prefer an explicit path from the user. Otherwise check `LLM_WIKI_PATH`, `OBSIDIAN_VAULT_PATH`, then `~/wiki`.
-2. Read `00 Meta/SCHEMA.md` if present, otherwise `SCHEMA.md`.
-3. Read the index: `00 Meta/index.md`, `index.md`, or any obvious MOC.
-4. Read the latest entries in `00 Meta/log.md` or `log.md`.
-5. Search existing pages for the user's topic before creating anything.
+2. Read `CLAUDE.md` first when present. It is the portable behavior contract even outside Claude Code.
+3. Read `wiki/index.md`, then `wiki/log.md`, `wiki/overview.md`, and `wiki/QUESTIONS.md`.
+4. Search `wiki/concepts/`, `wiki/entities/`, `wiki/synthesis/`, and `wiki/sources/` for the user's topic before creating anything.
+5. Check `wiki/.state/source-manifest.json` and `wiki/.state/source-dependencies.json` if source freshness matters.
 
 Never ingest, rename, or create pages before this orientation step unless the user explicitly asks to create a brand-new vault.
 
-## Default Obsidian Layout
+## Default Layout
 
-For a new AI knowledge vault, create this structure unless the user requests another convention:
+For a new AI knowledge vault, create this strict structure:
 
 ```text
-vault/
-  00 Meta/
-    SCHEMA.md
+knowledge-base/
+  raw/
+    articles/
+    clippings/
+    images/
+    pdfs/
+    notes/
+    personal/
+  wiki/
     index.md
     log.md
     overview.md
-    questions.md
-    source-manifest.json
-    source-dependencies.json
-    topic-map.md
-  10 Sources/
-    articles/
-    papers/
-    transcripts/
-    clips/
-    personal/
-  20 Concepts/
-  30 Tools/
-  40 People/
-  50 Papers/
-  60 Workflows/
-  70 Prompts/
-  80 Questions/
-  90 Maps/
-  95 Outputs/
-  assets/
-  _archive/
+    QUESTIONS.md
+    sources/
+    concepts/
+    entities/
+    synthesis/
+    outputs/
+    templates/
+    .state/
+      source-manifest.json
+      source-dependencies.json
+  scripts/
+    lint.py
+  BOOTSTRAP_PROMPT.md
+  UPGRADE_PROMPT.md
+  CLAUDE.md
+  README.md
 ```
 
 Map Karpathy's layers like this:
 
-- Raw sources: `10 Sources/` and `assets/`.
-- Wiki pages: `20 Concepts/` through `95 Outputs/`.
-- Schema: `00 Meta/SCHEMA.md`.
+- Raw sources: `raw/`.
+- Source summaries: `wiki/sources/`.
+- Compiled wiki pages: `wiki/concepts/`, `wiki/entities/`, `wiki/synthesis/`, and `wiki/outputs/`.
+- Behavior contract and prompts: `CLAUDE.md`, `BOOTSTRAP_PROMPT.md`, `UPGRADE_PROMPT.md`.
+- Generated state: `wiki/.state/`.
 
 Read `references/obsidian-conventions.md` before initializing or significantly restructuring an Obsidian vault.
 
 ## Core Rules
 
 - Raw source files are immutable. Add corrections and later interpretation to wiki pages, not source files.
-- Source notes track lifecycle fields: `processed`, `raw_file`, `raw_sha256`, `last_verified`, `possibly_outdated`, `canonical_source`, `language`, `source_url`, `domain`, and `author` when known.
+- Source notes live in `wiki/sources/` and track `processed`, `raw_file`, `raw_sha256`, `last_verified`, `possibly_outdated`, `canonical_source`, `language`, `source_url`, `domain`, and `author` when known.
 - Treat `processed: false`, changed hashes, or `possibly_outdated: true` as an ingest/review queue.
 - Every wiki page has YAML frontmatter with `title`, `created`, `updated`, `type`, `status`, `tags`, and `sources`.
 - Every substantial factual claim must be traceable to a source through `sources`, `evidence`, or a page-level Sources section.
@@ -87,7 +91,7 @@ Read `references/obsidian-conventions.md` before initializing or significantly r
 - Before creating a concept, check existing filenames, titles, and aliases. Keep English lowercase kebab-case slugs; put Chinese names in `title` and `aliases`.
 - Do not create pages for passing mentions. Create a page when the thing is central to one source or appears meaningfully in two or more sources.
 - When a claim conflicts with existing content, keep both claims with dates and sources. Mark the page `contested: true`.
-- Add or update index and log entries after every non-trivial change. Log whether the change reinforced, corrected, contradicted, re-ingested, or recorded a personal position.
+- Add or update `wiki/index.md` and `wiki/log.md` after every non-trivial change. Log whether the change reinforced, corrected, contradicted, re-ingested, or recorded a personal position.
 - If an ingest would update more than 10 existing pages, summarize the planned scope and ask before proceeding.
 - Personal writing can record the user's position, but it must not count toward external `source_count`.
 - `confidence: high` requires explicit human confirmation. Do not promote it automatically from source count alone.
@@ -96,18 +100,18 @@ Read `references/obsidian-conventions.md` before initializing or significantly r
 
 Read `references/workflows.md` for exact steps. Use this quick map:
 
-- Initialize: create the layout, write `SCHEMA.md`, seed `index.md`, seed `log.md`, suggest first sources.
-- Web clip: save clipped pages as source notes with `processed: false`, then batch ingest later.
+- Initialize: create the strict layout, write `CLAUDE.md`, seed wiki files, and suggest first sources.
+- Web clip: save raw clips under `raw/clippings/`, create source notes with `processed: false`, then batch ingest later.
 - Ingest: preserve source, extract entities and concepts, search existing wiki, update synthesis pages, update navigation, set `processed: true`.
-- Scan sources: compute SHA-256 for files under `10 Sources/` and `raw/`, update `00 Meta/source-manifest.json`, then ingest files marked `new` or `changed`.
-- Build dependencies: update `00 Meta/source-dependencies.json` so changed source files can be traced to affected wiki pages.
+- Scan sources: compute SHA-256 for files under `raw/`, update `wiki/.state/source-manifest.json`, then ingest files marked `new` or `changed`.
+- Build dependencies: update `wiki/.state/source-dependencies.json` so changed source files can be traced to affected wiki pages.
 - Re-ingest: when a hash changes, review the dependency map, update source notes and affected pages, then add a re-ingest log entry.
 - Query: read index, search pages, synthesize from wiki pages, cite page links and source notes, optionally file durable answers.
 - Audit: check broken links, orphan pages, index drift, missing frontmatter, unknown tags, stale pages, source drift, and contested claims.
 - Refactor: merge duplicate pages, split oversized pages, archive superseded pages, update inbound links.
 - Reflect: search for counter-evidence first, then synthesize patterns, gaps, contradictions, and next questions.
 - Merge: deduplicate pages by slug and aliases, preserving sources and personal positions.
-- Add question: normalize open questions into `00 Meta/questions.md` so future ingests can answer them.
+- Add question: normalize open questions into `wiki/QUESTIONS.md` so future ingests can answer them.
 
 Read `references/ingestion-policy.md` before source ingestion, re-ingestion, dependency-map, or web-clipper work. Read `references/confidence-policy.md` before changing confidence, source counts, or stale review fields. Read `references/operations.md` before reflect, merge, add-question, evolution-log, or durable output work.
 
@@ -115,17 +119,13 @@ Read `references/ingestion-policy.md` before source ingestion, re-ingestion, dep
 
 Use the template in `templates/` when creating a page:
 
-- `source.md`: normalized source notes under `10 Sources/`.
+- `source.md`: normalized source notes under `wiki/sources/`.
 - `web-clipper-source.md`: source notes created from Obsidian Web Clipper or browser saves.
-- `concept.md`: ideas such as RAG, evals, agentic workflows, memory, alignment.
-- `tool.md`: products, models, libraries, frameworks, plugins, APIs.
-- `paper.md`: research papers and technical reports.
-- `person.md`: researchers, authors, founders, maintainers.
-- `workflow.md`: repeatable processes, playbooks, checklists.
-- `prompt.md`: reusable prompts and prompt patterns.
-- `question.md`: durable answers worth filing after a query.
-- `map-of-content.md`: navigation pages and learning routes.
-- `personal-writing.md`: the user's own essays, investment notes, opinions, and analysis. These may update "My Position" sections but do not count as external support.
+- `concept.md`: `wiki/concepts/` ideas such as RAG, evals, agentic workflows, memory, alignment.
+- `tool.md`, `paper.md`, `person.md`: `wiki/entities/` products, models, libraries, papers, researchers, founders, maintainers.
+- `workflow.md`, `prompt.md`, `map-of-content.md`: `wiki/synthesis/` reusable processes, prompt patterns, maps, and cross-source analysis.
+- `question.md`: durable answers filed from `wiki/QUESTIONS.md`.
+- `personal-writing.md`: source notes for `raw/personal/` material. These may update "My Position" sections but do not count as external support.
 
 ## Tool Neutrality
 
@@ -139,7 +139,7 @@ This skill is intentionally not tied to one agent. Use whatever equivalent tools
 
 If a tool named in another agent's documentation is unavailable, translate the action to the local equivalent instead of stopping.
 
-Compatibility target: Claude Code, OpenCode, OpenClaw, Hermes, Codex, Gemini-style agents, and any file-capable agent. If an agent supports local rules files such as `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, or Hermes skill manifests, those files may point to this skill or summarize its vault-specific conventions. The canonical reusable instructions remain in `SKILL.md` and `references/`.
+Compatibility target: Claude Code, OpenCode, OpenClaw, Hermes, Codex, Gemini-style agents, and any file-capable agent. The generated vault includes `CLAUDE.md` because the tutorial names that file as the behavior contract; its content must remain portable and not Claude-only. Other agents should read it as ordinary Markdown.
 
 Do not make Claude Code, qmd, or any other single tool a hard dependency. If qmd-style commands are available, they are optional accelerators; otherwise use normal file reads, search, and scripts. See `references/optional-integrations.md` for adapters.
 
@@ -156,6 +156,7 @@ Good LLM Wiki work should leave the vault easier to navigate than before:
 Use scripts in `scripts/` when available:
 
 ```bash
+python3 scripts/init_knowledge_base.py /path/to/knowledge-base
 python3 scripts/scan_sources.py /path/to/vault
 python3 scripts/scan_sources.py /path/to/vault --write
 python3 scripts/build_source_dependencies.py /path/to/vault --write

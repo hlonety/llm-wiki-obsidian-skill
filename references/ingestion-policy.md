@@ -4,7 +4,7 @@ Use this policy when turning raw material into durable wiki pages.
 
 ## Source Lifecycle
 
-Source notes move through a small queue:
+Source notes live in `wiki/sources/` and move through a small queue:
 
 - `processed: false`: captured but not integrated.
 - `processed: true`: source has been summarized and affected wiki pages were updated.
@@ -33,7 +33,7 @@ last_verified:
 possibly_outdated: false
 ```
 
-Use `raw_file` for the exact capture or attachment path. Use `raw_sha256` for that raw file's hash. Use `sha256` for a markdown source note body hash when needed.
+Use `raw_file` for the exact capture or attachment path under `raw/`. Use `raw_sha256` for that raw file's hash. Use `sha256` for a markdown source note body hash when needed.
 
 ## Page Creation
 
@@ -55,7 +55,7 @@ After ingesting or re-ingesting sources, run:
 python3 scripts/build_source_dependencies.py /path/to/vault --write
 ```
 
-Use `00 Meta/source-dependencies.json` to answer:
+Use `wiki/.state/source-dependencies.json` to answer:
 
 - Which wiki pages depend on this source note?
 - Which wiki pages may be stale after this raw file changed?
@@ -70,4 +70,3 @@ Use precise log language:
 - `contradicted`: source conflicts with existing evidence.
 - `re-ingested`: source hash or extraction changed and pages were reviewed.
 - `personal-position`: user writing changed a `## My Position` section.
-

@@ -1,9 +1,8 @@
 interface:
   display_name: "LLM Wiki Obsidian"
-  short_description: "Maintain an Obsidian LLM knowledge wiki"
+  short_description: "Maintain a raw/wiki LLM knowledge base"
   brand_color: "#2563EB"
   default_prompt: "Use $llm-wiki-obsidian to initialize or maintain my AI knowledge vault."
 
 policy:
   allow_implicit_invocation: true
-

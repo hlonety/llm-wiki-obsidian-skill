@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Any
 
 
-DEFAULT_ROOTS = ["10 Sources", "raw"]
-MANIFEST_CANDIDATES = ["00 Meta/source-manifest.json", "source-manifest.json"]
+DEFAULT_ROOTS = ["raw"]
+MANIFEST_CANDIDATES = ["wiki/.state/source-manifest.json", "source-manifest.json", "00 Meta/source-manifest.json"]
 IGNORED_NAMES = {".DS_Store", ".gitkeep", "source-manifest.json"}
 IGNORED_DIRS = {".git", "__pycache__", "_archive"}
 
@@ -22,6 +22,9 @@ def manifest_path(wiki: Path) -> Path:
         path = wiki / candidate
         if path.exists():
             return path
+    strict_state = wiki / "wiki" / ".state"
+    if (wiki / "wiki").exists():
+        return strict_state / "source-manifest.json"
     meta = wiki / "00 Meta"
     return meta / "source-manifest.json" if meta.exists() else wiki / "source-manifest.json"
 
@@ -159,4 +162,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
