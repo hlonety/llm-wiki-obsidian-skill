@@ -8,14 +8,17 @@ import hashlib
 import json
 import re
 import sys
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
 
 WIKILINK_RE = re.compile(r"!\[\[[^\]]+\]\]|\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]")
 REQUIRED_FRONTMATTER = {"title", "created", "updated", "type", "tags", "sources"}
-META_FILENAMES = {"schema.md", "index.md", "log.md", "topic-map.md", "readme.md"}
+META_FILENAMES = {"schema.md", "index.md", "log.md", "topic-map.md", "overview.md", "questions.md", "readme.md"}
 IGNORED_DIRS = {".git", "assets", "_archive", "templates", "references", "scripts", "tests"}
+VOLATILITY_DAYS = {"high": 90, "medium": 180, "low": 365}
+STUB_BODY_WORDS = 80
 
 
 def split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
@@ -57,6 +60,41 @@ def parse_value(value: str) -> Any:
             return []
         return [item.strip().strip("\"'") for item in inner.split(",")]
     return value.strip("\"'")
+
+
+def as_list(value: Any) -> list[Any]:
+    if value in (None, ""):
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
+
+
+def as_int(value: Any) -> int | None:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_date(value: Any) -> date | None:
+    if not value:
+        return None
+    if isinstance(value, date):
+        return value
+    text = str(value).strip().strip("\"'")
+    for fmt in ("%Y-%m-%d", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(text[:10], fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def body_word_count(text: str) -> int:
+    without_code = re.sub(r"```.*?```", " ", text, flags=re.S)
+    tokens = re.findall(r"[A-Za-z0-9_]+|[\u4e00-\u9fff]", without_code)
+    return len(tokens)
 
 
 def iter_markdown_files(wiki: Path) -> list[Path]:
@@ -151,6 +189,7 @@ def lint_wiki(wiki_path: str | Path) -> dict[str, Any]:
     inbound = {key: 0 for key in keys}
     schema_tags = parse_schema_tags(wiki)
     listed_pages = set(extract_wikilinks(index_text(wiki)))
+    page_aliases: dict[str, set[str]] = {}
 
     for path in wiki_pages:
         rel = path.relative_to(wiki).as_posix()
@@ -162,13 +201,16 @@ def lint_wiki(wiki_path: str | Path) -> dict[str, Any]:
         if missing:
             issues.append({"code": "missing-frontmatter", "severity": "high", "page": key, "path": rel, "fields": missing})
 
-        tags = frontmatter.get("tags", [])
-        if isinstance(tags, str):
-            tags = [tags]
+        tags = as_list(frontmatter.get("tags", []))
         if schema_tags:
             unknown = sorted(tag for tag in tags if tag and tag not in schema_tags)
             if unknown:
                 issues.append({"code": "unknown-tag", "severity": "medium", "page": key, "path": rel, "tags": unknown})
+
+        page_aliases[key] = {normalize_alias(alias) for alias in as_list(frontmatter.get("aliases", [])) if str(alias).strip()}
+        page_aliases[key].add(normalize_alias(frontmatter.get("title", key)))
+
+        issues.extend(check_page_quality(key, rel, frontmatter, body))
 
         if key not in listed_pages:
             issues.append({"code": "missing-index-entry", "severity": "medium", "page": key, "path": rel})
@@ -183,6 +225,7 @@ def lint_wiki(wiki_path: str | Path) -> dict[str, Any]:
         if count == 0 and len(wiki_pages) > 1:
             issues.append({"code": "orphan-page", "severity": "low", "page": key, "path": keys[key].relative_to(wiki).as_posix()})
 
+    issues.extend(check_alias_overlaps(wiki, keys, page_aliases))
     issues.extend(check_raw_hashes(wiki))
 
     return {
@@ -194,6 +237,91 @@ def lint_wiki(wiki_path: str | Path) -> dict[str, Any]:
 
 def severity_rank(severity: str) -> int:
     return {"high": 0, "medium": 1, "low": 2}.get(severity, 3)
+
+
+def normalize_alias(value: Any) -> str:
+    text = str(value).strip().lower()
+    text = re.sub(r"\s+", " ", text)
+    return text
+
+
+def check_alias_overlaps(wiki: Path, keys: dict[str, Path], page_aliases: dict[str, set[str]]) -> list[dict[str, Any]]:
+    issues: list[dict[str, Any]] = []
+    seen: dict[str, str] = {}
+    for page, aliases in sorted(page_aliases.items()):
+        for alias in sorted(alias for alias in aliases if alias):
+            other = seen.get(alias)
+            if other and other != page:
+                issues.append(
+                    {
+                        "code": "alias-overlap",
+                        "severity": "medium",
+                        "page": page,
+                        "path": keys[page].relative_to(wiki).as_posix(),
+                        "other_page": other,
+                        "alias": alias,
+                    }
+                )
+            else:
+                seen[alias] = page
+    return issues
+
+
+def check_page_quality(key: str, rel: str, frontmatter: dict[str, Any], body: str) -> list[dict[str, Any]]:
+    issues: list[dict[str, Any]] = []
+    page_type = str(frontmatter.get("type", "")).lower()
+    if page_type in {"concept", "tool", "paper", "person", "workflow", "prompt", "question"}:
+        count = body_word_count(body)
+        if count < STUB_BODY_WORDS:
+            issues.append({"code": "stub-page", "severity": "low", "page": key, "path": rel, "words": count})
+
+    updated = parse_date(frontmatter.get("last_reviewed") or frontmatter.get("updated"))
+    volatility = str(frontmatter.get("domain_volatility") or frontmatter.get("freshness") or "").lower()
+    max_age = VOLATILITY_DAYS.get(volatility)
+    if updated and max_age:
+        age = (date.today() - updated).days
+        if age > max_age:
+            issues.append(
+                {
+                    "code": "stale-page",
+                    "severity": "medium",
+                    "page": key,
+                    "path": rel,
+                    "age_days": age,
+                    "threshold_days": max_age,
+                    "domain_volatility": volatility,
+                }
+            )
+
+    source_count = as_int(frontmatter.get("source_count"))
+    confidence = str(frontmatter.get("confidence", "")).lower()
+    confirmed_high = bool(frontmatter.get("high_confirmed") or frontmatter.get("user_confirmed_high"))
+    contested = bool(frontmatter.get("contested"))
+    if source_count is not None:
+        sources = [str(source) for source in as_list(frontmatter.get("sources", []))]
+        public_source_count = len([source for source in sources if not is_personal_source(source)])
+        if any(is_personal_source(source) for source in sources) and source_count > public_source_count:
+            issues.append(
+                {
+                    "code": "personal-source-counted",
+                    "severity": "medium",
+                    "page": key,
+                    "path": rel,
+                    "source_count": source_count,
+                    "external_source_count": public_source_count,
+                }
+            )
+        if source_count >= 5 and not contested and confidence != "high" and not confirmed_high:
+            issues.append({"code": "candidate-high-needs-review", "severity": "low", "page": key, "path": rel, "source_count": source_count})
+        if confidence == "high" and not confirmed_high:
+            issues.append({"code": "unconfirmed-high-confidence", "severity": "high", "page": key, "path": rel})
+
+    return issues
+
+
+def is_personal_source(source: str) -> bool:
+    source = source.lower().replace("\\", "/")
+    return "raw/personal/" in source or "10 sources/personal/" in source or "personal-writing" in source
 
 
 def check_raw_hashes(wiki: Path) -> list[dict[str, Any]]:
@@ -256,4 +384,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

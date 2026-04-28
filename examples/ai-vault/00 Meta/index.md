@@ -11,3 +11,6 @@
 
 - [[ai-learning-map]] - Starting map for AI learning notes.
 
+## Outputs
+
+No durable outputs yet.

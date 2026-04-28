@@ -43,12 +43,15 @@ vault/
     SCHEMA.md
     index.md
     log.md
+    overview.md
+    questions.md
     topic-map.md
   10 Sources/
     articles/
     papers/
     transcripts/
     clips/
+    personal/
   20 Concepts/
   30 Tools/
   40 People/
@@ -57,6 +60,7 @@ vault/
   70 Prompts/
   80 Questions/
   90 Maps/
+  95 Outputs/
   assets/
   _archive/
 ```
@@ -64,7 +68,7 @@ vault/
 Map Karpathy's layers like this:
 
 - Raw sources: `10 Sources/` and `assets/`.
-- Wiki pages: `20 Concepts/` through `90 Maps/`.
+- Wiki pages: `20 Concepts/` through `95 Outputs/`.
 - Schema: `00 Meta/SCHEMA.md`.
 
 Read `references/obsidian-conventions.md` before initializing or significantly restructuring an Obsidian vault.
@@ -80,6 +84,8 @@ Read `references/obsidian-conventions.md` before initializing or significantly r
 - When a claim conflicts with existing content, keep both claims with dates and sources. Mark the page `contested: true`.
 - Add or update index and log entries after every non-trivial change.
 - If an ingest would update more than 10 existing pages, summarize the planned scope and ask before proceeding.
+- Personal writing can record the user's position, but it must not count toward external `source_count`.
+- `confidence: high` requires explicit human confirmation. Do not promote it automatically from source count alone.
 
 ## Common Workflows
 
@@ -90,6 +96,11 @@ Read `references/workflows.md` for exact steps. Use this quick map:
 - Query: read index, search pages, synthesize from wiki pages, cite page links and source notes, optionally file durable answers.
 - Audit: check broken links, orphan pages, index drift, missing frontmatter, unknown tags, stale pages, source drift, and contested claims.
 - Refactor: merge duplicate pages, split oversized pages, archive superseded pages, update inbound links.
+- Reflect: search for counter-evidence first, then synthesize patterns, gaps, contradictions, and next questions.
+- Merge: deduplicate pages by slug and aliases, preserving sources and personal positions.
+- Add question: normalize open questions into `00 Meta/questions.md` so future ingests can answer them.
+
+Read `references/confidence-policy.md` before changing confidence, source counts, or stale review fields. Read `references/operations.md` before reflect, merge, add-question, or durable output work.
 
 ## Page Types
 
@@ -104,6 +115,7 @@ Use the template in `templates/` when creating a page:
 - `prompt.md`: reusable prompts and prompt patterns.
 - `question.md`: durable answers worth filing after a query.
 - `map-of-content.md`: navigation pages and learning routes.
+- `personal-writing.md`: the user's own essays, investment notes, opinions, and analysis. These may update "My Position" sections but do not count as external support.
 
 ## Tool Neutrality
 
@@ -116,6 +128,8 @@ This skill is intentionally not tied to one agent. Use whatever equivalent tools
 - A scripting/runtime tool for audits when available.
 
 If a tool named in another agent's documentation is unavailable, translate the action to the local equivalent instead of stopping.
+
+Compatibility target: Claude Code, OpenCode, OpenClaw, Hermes, Codex, Gemini-style agents, and any file-capable agent. If an agent supports local rules files such as `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, or Hermes skill manifests, those files may point to this skill or summarize its vault-specific conventions. The canonical reusable instructions remain in `SKILL.md` and `references/`.
 
 ## Quality Bar
 
@@ -133,4 +147,3 @@ Use scripts in `scripts/` when available:
 python3 scripts/lint_wiki.py /path/to/vault
 python3 scripts/rebuild_index.py /path/to/vault --write
 ```
-

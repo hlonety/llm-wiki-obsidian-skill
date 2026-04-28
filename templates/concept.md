@@ -7,7 +7,11 @@ type: concept
 status: seed
 tags: []
 sources: []
+source_count: 0
 confidence: medium
+domain_volatility: medium
+last_reviewed: "{{date}}"
+high_confirmed: false
 ---
 
 # {{title}}
@@ -24,6 +28,13 @@ confidence: medium
 ## Open Questions
 
 
+## My Position
+
+
+## Evolution Log
+
+- {{date}}: Created as a seed page.
+
 ## Related
 
 - 
@@ -31,4 +42,3 @@ confidence: medium
 ## Sources
 
 - 
-

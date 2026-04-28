@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 
-META_FILENAMES = {"schema.md", "index.md", "log.md", "topic-map.md", "readme.md"}
+META_FILENAMES = {"schema.md", "index.md", "log.md", "topic-map.md", "overview.md", "questions.md", "readme.md"}
 IGNORED_DIRS = {".git", "assets", "_archive", "templates", "references", "scripts", "tests"}
 TYPE_ORDER = ["concept", "tool", "paper", "person", "workflow", "prompt", "question", "map"]
 TYPE_LABELS = {
@@ -182,4 +182,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

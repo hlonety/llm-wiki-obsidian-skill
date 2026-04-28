@@ -11,10 +11,13 @@
    - page types
    - tag taxonomy
    - page creation thresholds
+   - confidence and source-count policy
    - update and contradiction policy
 5. Write `00 Meta/index.md` with section headings for all page types.
 6. Write `00 Meta/log.md` with an initialization entry.
-7. Suggest 3-5 first sources or topics.
+7. Write `00 Meta/questions.md` with Open and Resolved sections.
+8. Write `00 Meta/overview.md` with a small health dashboard.
+9. Suggest 3-5 first sources or topics.
 
 ## Ingest a Source
 
@@ -25,9 +28,11 @@
 5. Update pages that already cover the topic.
 6. Create new pages only when the source is central to the topic or the topic appears across multiple sources.
 7. Add sources and evidence to frontmatter or a Sources section.
-8. Add wikilinks in both directions when useful.
-9. Update index and log.
-10. Report created and modified files.
+8. If the source is personal writing, update `## My Position` sections but do not increment external `source_count`.
+9. Add wikilinks in both directions when useful.
+10. Check `00 Meta/questions.md` for questions the source might answer.
+11. Update index and log.
+12. Report created and modified files.
 
 ## Query the Wiki
 
@@ -36,7 +41,7 @@
 3. Read relevant wiki pages before raw sources.
 4. Answer from compiled pages first.
 5. Cite the wiki pages and important source notes.
-6. If the answer is durable, create a question, comparison, map, or workflow page.
+6. If the answer is durable, create a question, comparison, map, workflow, or output page.
 7. Log the query when it changes or adds knowledge.
 
 ## Audit the Wiki
@@ -51,6 +56,11 @@ Check:
 - Source files with changed hashes.
 - Large pages that should be split.
 - Duplicate pages for the same concept.
+- Alias overlaps, especially cross-language duplicates.
+- Stale pages based on `domain_volatility`.
+- Stub pages with too little body content.
+- `confidence: high` without explicit confirmation.
+- Personal writing incorrectly counted as external source support.
 - Low-confidence or contested pages needing user review.
 
 Use `scripts/lint_wiki.py` when available.
@@ -67,3 +77,21 @@ Use refactors to reduce entropy:
 
 Before reorganizing more than 10 files, describe the plan and ask for confirmation.
 
+## Promote Confidence
+
+1. Count only independent external sources.
+2. Leave single-source claims at `confidence: low`.
+3. Use `confidence: medium` when three or more external sources broadly agree.
+4. When a page reaches five or more external sources, show the user the definition, source list, and known contradictions.
+5. Promote to `confidence: high` only after explicit user confirmation.
+6. Record `high_confirmed`, `high_confirmed_by`, and `high_confirmed_on`.
+
+## Personal Writing
+
+1. Store the writing under `10 Sources/personal/`.
+2. Capture its hash and metadata.
+3. Extract the user's claims and positions.
+4. Add those views to relevant concept pages under `## My Position`.
+5. Do not increment `source_count`.
+6. Do not promote confidence based on the user's own writing.
+7. Log the position update.

@@ -7,6 +7,7 @@ Use these conventions when the user wants an Obsidian-first LLM Wiki.
 ```text
 00 Meta/       schema, index, logs, topic maps
 10 Sources/    immutable source captures and normalized source notes
+10 Sources/personal/  user-authored essays, notes, and analysis
 20 Concepts/   durable ideas and technical concepts
 30 Tools/      models, products, APIs, plugins, frameworks
 40 People/     researchers, maintainers, authors, founders
@@ -15,6 +16,7 @@ Use these conventions when the user wants an Obsidian-first LLM Wiki.
 70 Prompts/    reusable prompts and prompt patterns
 80 Questions/  durable answers filed from queries
 90 Maps/       MOCs, learning paths, overview maps
+95 Outputs/    durable generated answers, reports, slides, charts
 assets/        images and attachments
 _archive/      superseded pages
 ```
@@ -39,7 +41,11 @@ type: concept | tool | paper | person | workflow | prompt | question | map
 status: seed | growing | stable | contested | archived
 tags: []
 sources: []
+source_count: 0
 confidence: medium
+domain_volatility: medium
+last_reviewed: YYYY-MM-DD
+high_confirmed: false
 ---
 ```
 
@@ -53,6 +59,8 @@ contested: true
 contradictions: []
 freshness: stable | fast-moving | stale
 review_after: YYYY-MM-DD
+high_confirmed_by:
+high_confirmed_on:
 ```
 
 ## AI Knowledge Taxonomy
@@ -67,13 +75,21 @@ Start with this tag taxonomy for an AI vault. Add tags deliberately in `00 Meta/
 
 ## Dataview Examples
 
+Open questions:
+
+```dataview
+TASK
+FROM "00 Meta/questions.md"
+WHERE !completed
+```
+
 Pages needing review:
 
 ```dataview
-TABLE status, confidence, updated
+TABLE status, confidence, domain_volatility, last_reviewed
 FROM "20 Concepts" OR "30 Tools" OR "50 Papers"
-WHERE status = "contested" OR confidence = "low"
-SORT updated ASC
+WHERE status = "contested" OR confidence = "low" OR domain_volatility = "high"
+SORT last_reviewed ASC
 ```
 
 Recently updated pages:
@@ -116,3 +132,21 @@ tags: []
 
 Keep source notes close to the source. Put interpretation in linked wiki pages.
 
+## Personal Writing
+
+Store user-authored material in `10 Sources/personal/` or the user's chosen personal source folder.
+
+Personal writing pages may contain:
+
+- the user's argument,
+- the user's position on a concept,
+- referenced external evidence,
+- limitations,
+- supersession status.
+
+When ingesting personal writing:
+
+- Write the user's view into `## My Position` on relevant concept pages.
+- Do not increment external `source_count`.
+- Do not promote confidence based on personal writing.
+- If the personal writing cites external sources, link those sources separately.

@@ -8,6 +8,8 @@ status: seed
 tags: [paper]
 sources: []
 confidence: medium
+domain_volatility: low
+last_reviewed: "{{date}}"
 ---
 
 # {{title}}
@@ -34,4 +36,3 @@ confidence: medium
 ## Sources
 
 - 
-

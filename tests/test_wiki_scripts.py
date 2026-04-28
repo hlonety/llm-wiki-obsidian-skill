@@ -112,6 +112,119 @@ class WikiScriptTests(unittest.TestCase):
         self.assertEqual({issue["page"] for issue in missing}, {"prompt-architecture", "codex"})
         self.assertEqual(report["summary"]["pages"], 3)
 
+    def test_lint_reports_v02_knowledge_quality_issues(self):
+        lint_wiki = load_module("lint_wiki", ROOT / "scripts" / "lint_wiki.py")
+        (self.wiki / "concepts" / "old-model.md").write_text(
+            textwrap.dedent(
+                """
+                ---
+                title: Old Model
+                aliases: []
+                created: 2020-01-01
+                updated: 2020-01-01
+                type: concept
+                tags: [model]
+                sources: [raw/articles/a.md, raw/articles/b.md, raw/articles/c.md, raw/articles/d.md, raw/articles/e.md]
+                source_count: 5
+                confidence: medium
+                domain_volatility: high
+                ---
+
+                Old model pages should be reviewed because fast-moving topics age quickly.
+                They also become high-confidence candidates only after a human confirms the definition and sources.
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        (self.wiki / "concepts" / "tiny-page.md").write_text(
+            textwrap.dedent(
+                """
+                ---
+                title: Tiny Page
+                aliases: []
+                created: 2026-04-28
+                updated: 2026-04-28
+                type: concept
+                tags: [agent]
+                sources: []
+                ---
+
+                Too short.
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        (self.wiki / "concepts" / "retrieval-augmented-generation.md").write_text(
+            textwrap.dedent(
+                """
+                ---
+                title: Retrieval Augmented Generation
+                aliases: [RAG, 检索增强生成]
+                created: 2026-04-28
+                updated: 2026-04-28
+                type: concept
+                tags: [agent]
+                sources: []
+                ---
+
+                Retrieval augmented generation is related to [[agentic-workflow]].
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        (self.wiki / "concepts" / "rag.md").write_text(
+            textwrap.dedent(
+                """
+                ---
+                title: RAG
+                aliases: [RAG]
+                created: 2026-04-28
+                updated: 2026-04-28
+                type: concept
+                tags: [agent]
+                sources: []
+                ---
+
+                A duplicate short name for retrieval augmented generation.
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+        (self.wiki / "concepts" / "personal-position.md").write_text(
+            textwrap.dedent(
+                """
+                ---
+                title: Personal Position
+                aliases: []
+                created: 2026-04-28
+                updated: 2026-04-28
+                type: concept
+                tags: [agent]
+                sources: [raw/articles/public-source.md, raw/personal/my-note.md]
+                source_count: 2
+                confidence: medium
+                ---
+
+                This page mixes public evidence with a personal writing note.
+                """
+            ).strip()
+            + "\n",
+            encoding="utf-8",
+        )
+
+        report = lint_wiki.lint_wiki(self.wiki)
+        codes = {issue["code"] for issue in report["issues"]}
+
+        self.assertIn("stale-page", codes)
+        self.assertIn("stub-page", codes)
+        self.assertIn("alias-overlap", codes)
+        self.assertIn("candidate-high-needs-review", codes)
+        self.assertIn("personal-source-counted", codes)
+
     def test_rebuild_index_groups_pages_by_type(self):
         rebuild_index = load_module("rebuild_index", ROOT / "scripts" / "rebuild_index.py")
 

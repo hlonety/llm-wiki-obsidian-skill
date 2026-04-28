@@ -8,6 +8,7 @@ status: seed
 tags: []
 sources: []
 confidence: medium
+confidence_notes:
 ---
 
 # {{title}}
@@ -22,7 +23,12 @@ confidence: medium
 
 - 
 
+## Confidence Notes
+
+
+## Limitations
+
+
 ## Related
 
 - 
-
